@@ -1,5 +1,12 @@
 # Step 1 — Research and Planning
 
+## Required Deliverable (as specified in the project brief)
+
+> Problem statement. Defined user roles, the functional requirements and a high level
+> overview of how users interact in your systems.
+
+---
+
 ## 1.1 Problem Statement
 
 Healthcare providers routinely need to confirm that the person in front of them (or
@@ -140,3 +147,25 @@ sequenceDiagram
 This overview is expanded into concrete data structures, consent-lifecycle diagrams,
 and smart-contract function signatures in
 [`02-system-design.md`](02-system-design.md).
+
+---
+
+## Our Actual Deliverable for Step 1
+
+- **Problem statement** — Section 1.1 above: centralized storage of patients'
+  government IDs gives providers no accountability, patients no visibility or
+  revocation, and turns every provider into a breach honeypot.
+- **Research** — Section 1.2: a 5-system comparison table (hospital portals, national
+  eID schemes, KYC vendors, W3C DID/Verifiable Credentials, paper photocopies) with
+  what works/doesn't, and the design takeaways carried forward.
+- **Defined user roles** — Section 1.3: **User/Identity Owner** (patient), **Requester**
+  (doctor/hospital/insurer), **Administrator** (deployment + requester whitelisting
+  only, no access to consent or data), with a permissions summary for each.
+- **Functional requirements** — Section 1.4: 11 numbered requirements covering
+  registration, document-reference updates, scoped time-limited consent (1–365 days),
+  revocation, auto-expiry, gated access checks, full granted/denied access logging,
+  token incentives, non-transfer of data ownership, requester whitelisting, and
+  hash-based tamper verification.
+- **High-level interaction overview** — Section 1.5: a Mermaid sequence diagram
+  tracing the full lifecycle (whitelist → upload → register → grant consent → access
+  request → grant/deny + log → revoke) end to end.
