@@ -33,7 +33,7 @@ ownership — the ID images always remain George's).
 | Document | Covers |
 |---|---|
 | [`docs/step1-deliverable.md`](docs/step1-deliverable.md) | Problem statement, prior-art research, user roles, functional requirements, high-level interaction overview |
-| [`docs/02-system-design.md`](docs/02-system-design.md) | Data model, consent model, audit log design, smart-contract design, architecture diagram |
+| [`docs/step2-deliverable.md`](docs/step2-deliverable.md) | Data model, consent model, audit log design, smart-contract design, architecture diagram |
 
 ## Worked example used throughout the docs
 

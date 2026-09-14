@@ -146,7 +146,7 @@ sequenceDiagram
 
 This overview is expanded into concrete data structures, consent-lifecycle diagrams,
 and smart-contract function signatures in
-[`02-system-design.md`](02-system-design.md).
+[`step2-deliverable.md`](step2-deliverable.md).
 
 ---
 

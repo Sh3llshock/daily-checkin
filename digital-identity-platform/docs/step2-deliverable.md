@@ -1,5 +1,20 @@
 # Step 2 — Platform/System Design
 
+## Required Deliverable (as specified in the project brief)
+
+> Architecture diagram (UML or others) showing your chosen design and how the
+> components of the system interact with one another.
+
+The brief also directs the design work leading up to that diagram: design the data
+model (with an on-chain/off-chain/hashed table), design the consent model (types of
+data, duration, who can grant/revoke, expiry behavior, workflows), design the audit
+log (what's recorded, that logs can't be deleted), and design the smart contracts for
+the Digital Identity and Data Sharing components. All of that is included below,
+since the architecture diagram is meaningless without the design decisions it
+depicts.
+
+---
+
 ## A. Data Model
 
 ### A.1 Identity Attributes
@@ -248,3 +263,26 @@ them), **access is gated purely by consent** (`DataSharingManager` never checks 
 balances), **every attempt is logged immutably** (`AccessLogger` is append-only), and
 **users are incentivized** (ACT minted on every consent grant) without incentives ever
 becoming a way to buy access.
+
+---
+
+## Our Actual Deliverable for Step 2
+
+- **Data model** — Section A.1/A.2: identity attributes list plus the required
+  on-chain / off-chain / hashed table (wallet address, email hash, document link,
+  front/back ID hashes on-chain; name, email, ID number, actual images off-chain).
+- **Consent model** — Section A.3: data scopes (`FRONT_ONLY` / `BACK_ONLY` / `BOTH`),
+  1–365 day duration, grant/revoke restricted to the identity owner only, automatic
+  expiry with no cleanup transaction, a Mermaid state diagram of the consent
+  lifecycle, and pseudocode for `setConsent` / `revokeConsent` / `isConsentValid`.
+- **Audit log design** — Section A.4: what's recorded per attempt (user, requester,
+  timestamp, outcome, denial reason), confirmation that logs are append-only with no
+  delete/edit function, and pseudocode for the access-check-and-log flow.
+- **Smart contract design** — Section B: five contracts (`DigitalIdentityRegistry`,
+  `ConsentManager`, `DataSharingManager`, `AccessLogger`, `AccessToken`) with full
+  function tables for the Digital Identity and Data Sharing components (Register
+  User, Retrieve User Info, Set/Revoke Consent, Log Access, Share/Access Data, Update
+  Log) and an access-control summary.
+- **Architecture diagram** — Section B.6: a Mermaid flowchart showing the off-chain
+  storage, all five contracts, and the numbered interaction sequence between User,
+  Requester, and Administrator — the explicit deliverable the brief asks for.
