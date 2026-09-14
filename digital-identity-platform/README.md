@@ -34,6 +34,24 @@ ownership — the ID images always remain George's).
 |---|---|
 | [`docs/step1-deliverable.md`](docs/step1-deliverable.md) | Problem statement, prior-art research, user roles, functional requirements, high-level interaction overview |
 | [`docs/step2-deliverable.md`](docs/step2-deliverable.md) | Data model, consent model, audit log design, smart-contract design, architecture diagram |
+| [`docs/step3-deliverable.md`](docs/step3-deliverable.md) | Solidity implementation of the smart contracts + Hardhat project/deploy script |
+
+## Code
+
+| Path | Contents |
+|---|---|
+| `contracts/` | The 5 Solidity contracts: `DigitalIdentityRegistry`, `ConsentManager`, `AccessLogger`, `DataSharingManager`, `AccessToken` |
+| `scripts/deploy.js` | Deploys and wires all 5 contracts together |
+| `hardhat.config.js`, `package.json` | Hardhat project configuration |
+
+Run locally with:
+
+```bash
+cd digital-identity-platform
+npm install
+npx hardhat compile
+npx hardhat run scripts/deploy.js --network hardhat
+```
 
 ## Worked example used throughout the docs
 
