@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+// AI-assisted: this test file was generated with Claude Code (Claude Opus 5.5)
+// on 2026-09-30. Per the coursebook GenAI rules it must be fully reviewed by
+// the team before submission and declared in the report's AI statement.
+
 import "forge-std/Test.sol";
 import "./AccessLogger.sol";
 
