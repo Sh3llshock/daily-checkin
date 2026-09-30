@@ -24,12 +24,14 @@ contract DataSharingManager {
         accessLogger = _accessLogger;
     }
 
-    /// @notice Request access to a user's document reference. Reverts with no
-    /// data released if consent is missing, revoked, or expired; the attempt
-    /// is logged either way.
+    /// @notice Request access to a user's document reference. If consent is
+    /// missing, revoked, or expired, no data is released and `granted` is
+    /// false; the attempt is logged either way.
+    /// @dev A denied attempt deliberately does NOT revert: a revert would also
+    /// roll back the DENIED log entry and event, leaving no audit trail.
     function requestAccess(address user)
         external
-        returns (string memory documentLink, bytes32 frontHash, bytes32 backHash)
+        returns (bool granted, string memory documentLink, bytes32 frontHash, bytes32 backHash)
     {
         if (consentManager.isConsentValid(user, msg.sender)) {
             (, string memory link, bytes32 front, bytes32 back, ) = registry.getUserRecord(user);
@@ -43,13 +45,13 @@ contract DataSharingManager {
 
             accessLogger.logAccess(user, msg.sender, AccessLogger.Outcome.GRANTED, "");
             emit AccessGranted(user, msg.sender);
-            return (link, front, back);
+            return (true, link, front, back);
         }
 
         string memory reason = _denialReason(user, msg.sender);
         accessLogger.logAccess(user, msg.sender, AccessLogger.Outcome.DENIED, reason);
         emit AccessDenied(user, msg.sender, reason);
-        revert(string(abi.encodePacked("DataSharingManager: access denied - ", reason)));
+        return (false, "", bytes32(0), bytes32(0));
     }
 
     function _denialReason(address user, address requester) internal view returns (string memory) {
