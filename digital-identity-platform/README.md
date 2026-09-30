@@ -41,8 +41,8 @@ ownership — the ID images always remain George's).
 | Path | Contents |
 |---|---|
 | `contracts/` | The 5 Solidity contracts: `DigitalIdentityRegistry`, `ConsentManager`, `AccessLogger`, `DataSharingManager`, `AccessToken` |
-| `scripts/deploy.js` | Deploys and wires all 5 contracts together |
-| `hardhat.config.js`, `package.json` | Hardhat project configuration |
+| `ignition/modules/DigitalIdentityPlatform.ts` | Hardhat Ignition module: deploys and wires all 5 contracts together |
+| `hardhat.config.ts`, `package.json`, `tsconfig.json` | Hardhat 3 project configuration (viem toolbox, same setup as the course labs) |
 
 Run locally with:
 
@@ -50,7 +50,12 @@ Run locally with:
 cd digital-identity-platform
 npm install
 npx hardhat compile
-npx hardhat run scripts/deploy.js --network hardhat
+npx hardhat test                  # Solidity (.t.sol) tests
+npx hardhat test --gas-stats      # same, plus per-function gas usage
+
+# Deploy to a persistent local chain:
+npx hardhat node                  # terminal 1
+npm run deploy:local              # terminal 2
 ```
 
 ## Worked example used throughout the docs

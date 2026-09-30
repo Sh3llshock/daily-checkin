@@ -10,9 +10,10 @@
 
 ## What was implemented
 
-All five contracts from the Step 2 design are implemented in Solidity `^0.8.24`,
-using OpenZeppelin `Ownable`/`ERC20` for access control and the token, and wired
-together with a Hardhat project so they compile and deploy locally.
+All five contracts from the Step 2 design are implemented in Solidity `^0.8.20`
+(compiled with solc 0.8.28), using OpenZeppelin `Ownable`/`ERC20` for access control
+and the token, and wired together with a Hardhat 3 project (viem toolbox, the same
+setup as the course labs) so they compile and deploy locally.
 
 | Contract | File | Implements |
 |---|---|---|
@@ -61,10 +62,12 @@ digital-identity-platform/
 │   ├── ConsentManager.sol
 │   ├── AccessLogger.sol
 │   └── DataSharingManager.sol
-├── scripts/
-│   └── deploy.js          # deploys all 5 contracts and wires them together
-├── hardhat.config.js
+├── ignition/
+│   └── modules/
+│       └── DigitalIdentityPlatform.ts   # deploys all 5 contracts and wires them together
+├── hardhat.config.ts
 ├── package.json
+├── tsconfig.json
 └── .gitignore              # node_modules/, artifacts/, cache/ excluded from git
 ```
 
@@ -74,16 +77,17 @@ digital-identity-platform/
 cd digital-identity-platform
 npm install
 npx hardhat compile
-npx hardhat run scripts/deploy.js --network hardhat   # in-memory network, one-shot
+# one-shot deploy to Hardhat's in-memory network:
+npx hardhat ignition deploy ignition/modules/DigitalIdentityPlatform.ts
 # or, for a persistent local chain across multiple terminals:
 npx hardhat node                                        # terminal 1
-npx hardhat run scripts/deploy.js --network localhost   # terminal 2
+npm run deploy:local                                    # terminal 2
 ```
 
 Both compilation and a full deploy-and-wire run (`AccessToken` → `DigitalIdentityRegistry`
 → `ConsentManager` → `AccessLogger` → `DataSharingManager`, followed by
 `accessToken.setMinter(consentManager)` and `accessLogger.setDataSharingManager(dataSharingManager)`)
-were verified locally against Hardhat's built-in network as part of this step.
+were verified locally, both on Hardhat's in-memory network and against `npx hardhat node`.
 
 ---
 
@@ -93,8 +97,9 @@ were verified locally against Hardhat's built-in network as part of this step.
   (`DigitalIdentityRegistry`, `ConsentManager`, `AccessLogger`, `DataSharingManager`,
   `AccessToken`), matching the function tables and access-control rules from
   `step2-deliverable.md`.
-- **Supporting modules**: a Hardhat project (`hardhat.config.js`, `package.json`) and
-  a deployment script (`scripts/deploy.js`) that deploys and wires all five contracts
-  together, confirmed to compile and deploy successfully on Hardhat's local network.
+- **Supporting modules**: a Hardhat 3 project (`hardhat.config.ts`, `package.json`) and
+  an Ignition deployment module (`ignition/modules/DigitalIdentityPlatform.ts`) that
+  deploys and wires all five contracts together, confirmed to compile and deploy
+  successfully on Hardhat's local network.
 - Formal unit/integration tests and gas-usage measurement are the Step 4 deliverable
   and are not included here.

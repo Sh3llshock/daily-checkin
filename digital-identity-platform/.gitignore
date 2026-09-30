@@ -3,4 +3,9 @@ artifacts/
 cache/
 coverage/
 coverage.json
+types/
+dist/
 .env
+
+# Local-chain deployments are throwaway: `hardhat node` resets on restart
+ignition/deployments/chain-31337/
