@@ -36,13 +36,16 @@ together with a Hardhat project so they compile and deploy locally.
   comparison (`isConsentValid`) with no separate "expire" transaction needed.
 - **Every access attempt is logged, success or failure** — `requestAccess` always
   calls `accessLogger.logAccess(...)` on both the granted and denied paths, recording
-  a machine-readable `reason` (`NO_CONSENT` / `EXPIRED` / `REVOKED`) for denials.
+  a machine-readable `reason` (`NO_CONSENT` / `EXPIRED` / `REVOKED`) for denials. A
+  denied attempt returns `granted = false` instead of reverting, because a revert
+  would roll back the DENIED log entry along with everything else in the transaction.
 - **Logs are immutable** — `AccessLogger` exposes only `logAccess` (append) and two
   read functions; there is no delete/update function in the contract at all, and
   `logAccess` is further restricted to be callable only by the `DataSharingManager`
   contract address, not any externally-owned account.
 - **Tokens incentivize, never gate access** — `AccessToken.mintReward` is called only
-  from inside `ConsentManager.setConsent`, once per grant; `DataSharingManager` never
+  from inside `ConsentManager.setConsent`, only on a user's first grant to a given
+  requester (so re-granting cannot be used to farm tokens); `DataSharingManager` never
   reads an ACT balance anywhere in its access-check logic.
 - **Requester whitelisting (domain addition)** — `ConsentManager.setConsent` requires
   `registry.isApprovedRequester(requester)`, so consent can only ever be granted to

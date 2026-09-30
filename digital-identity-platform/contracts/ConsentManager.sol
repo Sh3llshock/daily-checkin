@@ -7,8 +7,9 @@ import "./AccessToken.sol";
 
 /// @title ConsentManager
 /// @notice Users grant/revoke time-limited, scoped consent to whitelisted
-/// requesters. Granting consent mints an ACT reward; the token is a pure
-/// incentive and is never checked when deciding data access.
+/// requesters. A user's first consent grant to each requester mints an ACT
+/// reward; the token is a pure incentive and is never checked when deciding
+/// data access.
 contract ConsentManager is Ownable {
     enum Scope { FRONT_ONLY, BACK_ONLY, BOTH }
 
@@ -55,6 +56,10 @@ contract ConsentManager is Ownable {
             "ConsentManager: duration out of range"
         );
 
+        // `exists` is never cleared (revoking only sets `revoked`), so this is
+        // true only the very first time this user consents to this requester.
+        bool firstGrant = !consents[msg.sender][requester].exists;
+
         uint256 expiresAt = block.timestamp + (durationDays * 1 days);
         consents[msg.sender][requester] = Consent({
             scope: scope,
@@ -67,7 +72,12 @@ contract ConsentManager is Ownable {
         emit ConsentGranted(msg.sender, requester, scope, expiresAt);
 
         // Incentive only -- no tokens ever move during data access.
-        accessToken.mintReward(msg.sender, rewardAmount);
+        // Rewarded once per (user, requester) pair: re-granting or
+        // revoke-then-re-grant to the same requester must not mint again,
+        // otherwise a user could farm ACT by looping setConsent.
+        if (firstGrant) {
+            accessToken.mintReward(msg.sender, rewardAmount);
+        }
     }
 
     /// @notice Revoke an active consent immediately. Only the identity owner

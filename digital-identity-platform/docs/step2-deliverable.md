@@ -104,6 +104,7 @@ function setConsent(requester, durationDays, scope):
     require(msg.sender is a registered user)
     require(requester is a whitelisted healthcare provider)
     require(1 <= durationDays <= 365)
+    firstGrant = NOT consents[msg.sender][requester].exists
     consents[msg.sender][requester] = Consent(
         scope: scope,
         grantedAt: now,
@@ -111,7 +112,8 @@ function setConsent(requester, durationDays, scope):
         revoked: false
     )
     emit ConsentGranted(msg.sender, requester, scope, expiresAt)
-    AccessToken.mintReward(msg.sender, REWARD_AMOUNT)   # incentive, not access control
+    if firstGrant:                                        # once per (user, requester)
+        AccessToken.mintReward(msg.sender, REWARD_AMOUNT) # incentive, not access control
 
 function revokeConsent(requester):
     require(msg.sender is a registered user)
@@ -149,11 +151,11 @@ problems directly.
 function requestAccess(user):
     if isConsentValid(user, msg.sender):
         logAccess(user, msg.sender, GRANTED, reason="")
-        return (documentLink[user], frontHash[user], backHash[user])
+        return (true, documentLink[user], frontHash[user], backHash[user])
     else:
         reason = determineReason(user, msg.sender)  # NO_CONSENT / EXPIRED / REVOKED
         logAccess(user, msg.sender, DENIED, reason)
-        revert("Access denied: " + reason)
+        return (false, "", 0, 0)   # NOT revert: a revert would erase the DENIED log
 ```
 
 ## B. Smart Contract Design
@@ -183,7 +185,7 @@ Step 4:
 
 | Function | Signature | Caller | Description |
 |---|---|---|---|
-| Set Consent | `setConsent(address requester, uint8 scope, uint256 durationDays)` | Registered user, self only | Validates `1 <= durationDays <= 365` and that `requester` is whitelisted; writes the consent record; calls `AccessToken.mintReward(msg.sender)` — minting itself is restricted so **only** `ConsentManager` (acting as the token's designated minter, itself deployed/owned by the platform) can trigger it, and **no** tokens move during data access, only at grant time. |
+| Set Consent | `setConsent(address requester, uint8 scope, uint256 durationDays)` | Registered user, self only | Validates `1 <= durationDays <= 365` and that `requester` is whitelisted; writes the consent record; on the user's first grant to this requester only, calls `AccessToken.mintReward(msg.sender)` (re-granting never mints again, so tokens can't be farmed) — minting itself is restricted so **only** `ConsentManager` (acting as the token's designated minter, itself deployed/owned by the platform) can trigger it, and **no** tokens move during data access, only at grant time. |
 | Revoke Consent | `revokeConsent(address requester)` | Registered user, self only | Sets `revoked = true` on the existing record; effective immediately; no token clawback (reward was for the act of granting, not for the access that may or may not follow). |
 | Check Validity | `isConsentValid(address user, address requester) view returns (bool)` | Anyone (used internally by `DataSharingManager`) | Pure/view computation described in A.3. |
 
@@ -192,7 +194,7 @@ Step 4:
 | Function | Signature | Caller | Description |
 |---|---|---|---|
 | Share Data (implicit) | — (handled by `registerUser` / `updateDocument` above) | User | The user stores the actual images off-chain themselves (their own hosting, cloud bucket, or IPFS pin); the contract only ever stores the link + hashes, never the file bytes. |
-| Access Data | `requestAccess(address user) returns (string memory link, bytes32 frontHash, bytes32 backHash)` | Requester | Calls `ConsentManager.isConsentValid(user, msg.sender)`. If true: returns the reference data and calls `AccessLogger.logAccess(user, msg.sender, GRANTED, "")`. If false: calls `AccessLogger.logAccess(user, msg.sender, DENIED, reason)` and reverts — no reference data is returned. |
+| Access Data | `requestAccess(address user) returns (bool granted, string memory link, bytes32 frontHash, bytes32 backHash)` | Requester | Calls `ConsentManager.isConsentValid(user, msg.sender)`. If true: returns `granted = true` with the reference data and calls `AccessLogger.logAccess(user, msg.sender, GRANTED, "")`. If false: calls `AccessLogger.logAccess(user, msg.sender, DENIED, reason)` and returns `granted = false` with no reference data. It deliberately does not revert, since a revert would also erase the DENIED log entry. |
 | Update Log | `logAccess(address user, address requester, uint8 outcome, string calldata reason)` | Only `DataSharingManager` (`onlyDataSharingManager` modifier) | Appends a new immutable entry to `logs[user]` and emits `AccessLogged(...)`. No delete/edit function exists anywhere in the contract. |
 | Read Log | `getLogs(address user) view returns (LogEntry[] memory)` | The user (self) — and optionally the admin for compliance review, but never other requesters | Lets a user see their own full access history, satisfying "no visibility into who accesses data." |
 
@@ -261,7 +263,7 @@ This satisfies the core invariants from the brief: **data ownership never moves*
 (only a link + hashes are ever on-chain, and the images stay wherever the user put
 them), **access is gated purely by consent** (`DataSharingManager` never checks token
 balances), **every attempt is logged immutably** (`AccessLogger` is append-only), and
-**users are incentivized** (ACT minted on every consent grant) without incentives ever
+**users are incentivized** (ACT minted on a user's first consent grant to each requester) without incentives ever
 becoming a way to buy access.
 
 ---

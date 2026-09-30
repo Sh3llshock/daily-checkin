@@ -24,8 +24,8 @@ A healthcare provider (doctor, hospital admissions desk, lab, insurer) who needs
 verify "is this really George's ID, and did George approve me seeing it?" can only
 retrieve the link if George has granted that provider **time-limited, revocable
 consent**. Every access attempt — successful or denied — is written to an immutable
-on-chain audit log, and George earns platform **Access Tokens (ACT)** each time he
-grants consent, as an incentive for participating (tokens grant *access*, never
+on-chain audit log, and George earns platform **Access Tokens (ACT)** the first time
+he grants consent to each provider, as an incentive for participating (tokens grant *access*, never
 ownership — the ID images always remain George's).
 
 ## Contents

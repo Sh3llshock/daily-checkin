@@ -69,7 +69,7 @@ Permission summary:
 - Only the **Identity Owner** can grant/revoke their own consent (`msg.sender ==
   owner` enforced in the contract).
 - Only an address holding **valid consent** may successfully retrieve a user's
-  document reference; anyone else's attempt is logged as denied and reverts.
+  document reference; anyone else's attempt is logged as denied and returns no data.
 - Only the **Administrator** may register new requester entities and adjust system
   parameters (e.g., token reward rate) — the admin role is intentionally kept out of
   the data path entirely.
@@ -85,7 +85,8 @@ Permission summary:
    passport).
 3. **Consent grant** — a user creates a consent record specifying: the requester's
    address, the data scope (front only / back only / both), and a duration between 1
-   and 365 days. Granting consent mints/transfers ACT tokens to the user.
+   and 365 days. A user's first consent grant to each requester mints ACT tokens to
+   the user (re-granting to the same requester does not mint again).
 4. **Consent revocation** — a user can revoke an active consent at any time before its
    natural expiry; revocation takes effect immediately.
 5. **Consent expiry handling** — once `block.timestamp` passes the recorded expiry, the
@@ -137,8 +138,8 @@ sequenceDiagram
         R->>OffChain: Fetch images from link
         R->>R: Re-hash images, compare to on-chain hashes (integrity check)
     else consent invalid/expired/missing
-        SC-->>R: Revert / deny
         SC->>SC: logAccess(George, Dr. Kostas, DENIED)
+        SC-->>R: granted = false, no data returned
     end
     U->>SC: revokeConsent(Dr. Kostas)  %% at any time before expiry
     Note over SC: Any future requestAccess by Dr. Kostas<br/>is now logged as DENIED
