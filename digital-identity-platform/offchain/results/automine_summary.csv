@@ -1,0 +1,5 @@
+n_users,n_requesters,total_txs,avg_gas_per_tx,total_gas,avg_confirmation_ms,max_confirmation_ms,gatekeeper_calls,avg_gatekeeper_ms,total_time_s,throughput_tx_per_s
+5,3,28,96206,2693763,2.87,5.29,15,21.8,0.63,44.3
+10,3,53,98300,5209898,3.42,34.73,30,18.79,1.19,44.7
+25,3,128,100076,12809771,2.6,9.51,75,18.92,2.78,46.1
+50,3,253,100696,25476186,2.73,9.02,150,19.5,5.65,44.8

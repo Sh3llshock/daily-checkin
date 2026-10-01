@@ -11,18 +11,26 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract AccessLogger is Ownable {
     enum Outcome { DENIED, GRANTED }
 
+    /// @notice Why an attempt was denied; NONE on GRANTED entries.
+    /// @dev An enum is one byte, where the string it replaced needed its own
+    /// storage slot (TASKS A4).
+    enum Reason { NONE, NO_CONSENT, REVOKED, EXPIRED }
+
+    /// @dev 20 + 8 + 1 + 1 = 30 bytes, so a whole entry fits in ONE storage
+    /// slot: each new entry costs a single zero-to-non-zero SSTORE instead of
+    /// three (TASKS A4). uint64 seconds lasts far beyond any realistic date.
     struct LogEntry {
         address requester;
-        uint256 timestamp;
+        uint64 timestamp;
         Outcome outcome;
-        string reason; // "" on GRANTED; "NO_CONSENT" | "EXPIRED" | "REVOKED" on DENIED
+        Reason reason;
     }
 
     address public dataSharingManager;
     mapping(address => LogEntry[]) private logs;
 
     event DataSharingManagerUpdated(address indexed newManager);
-    event AccessLogged(address indexed user, address indexed requester, Outcome outcome, string reason, uint256 timestamp);
+    event AccessLogged(address indexed user, address indexed requester, Outcome outcome, Reason reason, uint256 timestamp);
 
     constructor() Ownable(msg.sender) {}
 
@@ -31,8 +39,15 @@ contract AccessLogger is Ownable {
         _;
     }
 
-    /// @notice Wire up the one contract allowed to write log entries. Admin only.
+    /// @notice Wire up the one contract allowed to write log entries. Admin
+    /// only, and only once: after the first call the writer can never change,
+    /// so not even the admin can later point it at their own wallet and
+    /// forge entries.
+    /// @dev Not a constructor argument because DataSharingManager takes this
+    /// logger's address in *its* constructor, so the logger has to be deployed
+    /// first and wired afterwards (see ignition/modules/DigitalIdentityPlatform.ts).
     function setDataSharingManager(address manager) external onlyOwner {
+        require(dataSharingManager == address(0), "AccessLogger: manager already set");
         require(manager != address(0), "AccessLogger: zero address");
         dataSharingManager = manager;
         emit DataSharingManagerUpdated(manager);
@@ -40,13 +55,13 @@ contract AccessLogger is Ownable {
 
     /// @notice Append a new immutable entry. Only DataSharingManager may call
     /// this -- no externally-owned account can write directly.
-    function logAccess(address user, address requester, Outcome outcome, string calldata reason)
+    function logAccess(address user, address requester, Outcome outcome, Reason reason)
         external
         onlyDataSharingManager
     {
         logs[user].push(LogEntry({
             requester: requester,
-            timestamp: block.timestamp,
+            timestamp: uint64(block.timestamp),
             outcome: outcome,
             reason: reason
         }));
@@ -57,10 +72,13 @@ contract AccessLogger is Ownable {
         return logs[user].length;
     }
 
-    /// @notice Read a user's own full access history (or the admin, for
-    /// compliance review). Requesters can never read anyone else's log.
+    /// @notice Read a user's full access history. Anyone can call this.
+    /// @dev The log is public on purpose: all contract storage can be read
+    /// with eth_getStorageAt and every entry is also an AccessLogged event, so
+    /// a `msg.sender` check here would only look like privacy (an eth_call can
+    /// set any `from` address). The audit trail is transparent, not secret;
+    /// the data itself is protected off-chain by the gatekeeper.
     function getLogs(address user) external view returns (LogEntry[] memory) {
-        require(msg.sender == user || msg.sender == owner(), "AccessLogger: not authorized");
         return logs[user];
     }
 }

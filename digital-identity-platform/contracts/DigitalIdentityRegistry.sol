@@ -10,12 +10,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /// the front/back ID images. Raw personal data and the images themselves are
 /// never stored on-chain.
 contract DigitalIdentityRegistry is Ownable {
+    /// @dev There is no separate `registered` flag: registerUser rejects a zero
+    /// emailHash, so `emailHash != 0` holds exactly for registered users. That
+    /// saves one zero-to-non-zero SSTORE per registration (TASKS A4).
     struct Identity {
         bytes32 emailHash;
         string documentLink;
         bytes32 frontHash;
         bytes32 backHash;
-        bool registered;
     }
 
     mapping(address => Identity) private identities;
@@ -29,7 +31,7 @@ contract DigitalIdentityRegistry is Ownable {
     constructor() Ownable(msg.sender) {}
 
     modifier onlyRegistered() {
-        require(identities[msg.sender].registered, "DigitalIdentityRegistry: not registered");
+        require(identities[msg.sender].emailHash != bytes32(0), "DigitalIdentityRegistry: not registered");
         _;
     }
 
@@ -40,7 +42,7 @@ contract DigitalIdentityRegistry is Ownable {
         bytes32 frontHash,
         bytes32 backHash
     ) external {
-        require(!identities[msg.sender].registered, "DigitalIdentityRegistry: already registered");
+        require(identities[msg.sender].emailHash == bytes32(0), "DigitalIdentityRegistry: already registered");
         require(emailHash != bytes32(0), "DigitalIdentityRegistry: empty email hash");
         require(bytes(documentLink).length > 0, "DigitalIdentityRegistry: empty link");
         require(frontHash != bytes32(0) && backHash != bytes32(0), "DigitalIdentityRegistry: empty image hash");
@@ -50,8 +52,7 @@ contract DigitalIdentityRegistry is Ownable {
             emailHash: emailHash,
             documentLink: documentLink,
             frontHash: frontHash,
-            backHash: backHash,
-            registered: true
+            backHash: backHash
         });
         usedEmailHashes[emailHash] = true;
 
@@ -88,7 +89,7 @@ contract DigitalIdentityRegistry is Ownable {
     }
 
     function isRegistered(address user) external view returns (bool) {
-        return identities[user].registered;
+        return identities[user].emailHash != bytes32(0);
     }
 
     /// @notice Query a user's stored reference/hash data.
@@ -98,6 +99,6 @@ contract DigitalIdentityRegistry is Ownable {
         returns (bytes32 emailHash, string memory documentLink, bytes32 frontHash, bytes32 backHash, bool registered)
     {
         Identity storage id = identities[user];
-        return (id.emailHash, id.documentLink, id.frontHash, id.backHash, id.registered);
+        return (id.emailHash, id.documentLink, id.frontHash, id.backHash, id.emailHash != bytes32(0));
     }
 }

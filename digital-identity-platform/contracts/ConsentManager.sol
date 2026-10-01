@@ -13,10 +13,14 @@ import "./AccessToken.sol";
 contract ConsentManager is Ownable {
     enum Scope { FRONT_ONLY, BACK_ONLY, BOTH }
 
+    /// @dev 1 + 8 + 8 + 1 + 1 = 19 bytes, so a whole consent record fits in
+    /// ONE storage slot instead of four: a first grant writes one new slot,
+    /// and every validity check reads one (TASKS A4). uint64 seconds lasts far
+    /// beyond any realistic date.
     struct Consent {
         Scope scope;
-        uint256 grantedAt;
-        uint256 expiresAt;
+        uint64 grantedAt;
+        uint64 expiresAt;
         bool revoked;
         bool exists;
     }
@@ -63,8 +67,8 @@ contract ConsentManager is Ownable {
         uint256 expiresAt = block.timestamp + (durationDays * 1 days);
         consents[msg.sender][requester] = Consent({
             scope: scope,
-            grantedAt: block.timestamp,
-            expiresAt: expiresAt,
+            grantedAt: uint64(block.timestamp),
+            expiresAt: uint64(expiresAt),
             revoked: false,
             exists: true
         });

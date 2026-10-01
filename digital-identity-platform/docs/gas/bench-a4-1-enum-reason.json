@@ -1,0 +1,112 @@
+{
+  "logger": "AccessLogger",
+  "users": 5,
+  "deployment": {
+    "AccessToken": {
+      "gas": 696804,
+      "bytecodeSize": 2615
+    },
+    "DigitalIdentityRegistry": {
+      "gas": 772744,
+      "bytecodeSize": 3208
+    },
+    "ConsentManager": {
+      "gas": 702661,
+      "bytecodeSize": 2772
+    },
+    "AccessLogger": {
+      "gas": 505156,
+      "bytecodeSize": 1971
+    },
+    "DataSharingManager": {
+      "gas": 567956,
+      "bytecodeSize": 2373
+    }
+  },
+  "functions": {
+    "setMinter": {
+      "min": 47464,
+      "avg": 47464,
+      "max": 47464,
+      "count": 1
+    },
+    "setDataSharingManager": {
+      "min": 47408,
+      "avg": 47408,
+      "max": 47408,
+      "count": 1
+    },
+    "setRequesterStatus (approve)": {
+      "min": 47775,
+      "avg": 47779,
+      "max": 47787,
+      "count": 3
+    },
+    "setRequesterStatus (remove)": {
+      "min": 25863,
+      "avg": 25863,
+      "max": 25863,
+      "count": 1
+    },
+    "registerUser": {
+      "min": 228236,
+      "avg": 228236,
+      "max": 228236,
+      "count": 5
+    },
+    "setConsent (first grant, mints ACT)": {
+      "min": 159250,
+      "avg": 162670,
+      "max": 176350,
+      "count": 5
+    },
+    "requestAccess (granted, 1st log entry)": {
+      "min": 160109,
+      "avg": 160109,
+      "max": 160109,
+      "count": 5
+    },
+    "requestAccess (granted, later entry)": {
+      "min": 143009,
+      "avg": 143009,
+      "max": 143009,
+      "count": 5
+    },
+    "setConsent (re-grant, no mint)": {
+      "min": 48354,
+      "avg": 48354,
+      "max": 48354,
+      "count": 5
+    },
+    "revokeConsent": {
+      "min": 28811,
+      "avg": 28811,
+      "max": 28811,
+      "count": 5
+    },
+    "requestAccess (denied: REVOKED)": {
+      "min": 123986,
+      "avg": 123986,
+      "max": 123986,
+      "count": 5
+    },
+    "requestAccess (denied: NO_CONSENT)": {
+      "min": 123846,
+      "avg": 123846,
+      "max": 123846,
+      "count": 5
+    },
+    "updateDocument": {
+      "min": 48741,
+      "avg": 48751,
+      "max": 48753,
+      "count": 5
+    },
+    "requestAccess (denied: EXPIRED)": {
+      "min": 124130,
+      "avg": 124130,
+      "max": 124130,
+      "count": 5
+    }
+  }
+}

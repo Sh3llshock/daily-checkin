@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    actor A as Administrator
+    actor U as Patient<br/>(identity owner)
+    participant G as Gatekeeper<br/>(off-chain data holder)
+    participant SC as Smart contracts
+    actor R as Provider<br/>(requester)
+
+    A->>SC: setRequesterStatus(provider, true)
+    U->>U: Hash the ID files locally (SHA-256)
+    U->>G: Store the ID files (front, back)
+    U->>SC: registerUser(emailHash, gatekeeper link, frontHash, backHash)
+    U->>SC: setConsent(provider, scope, 30 days)
+    SC-->>U: 10 ACT reward (first grant to this provider only)
+    R->>SC: requestAccess(patient)
+    Note over SC: Callers that aren't whitelisted revert
+    alt consent valid
+        SC->>SC: Log GRANTED, emit AccessGranted
+        R->>G: Transaction hash + signature
+        G->>SC: Check receipt, whitelist, consent, recency
+        G-->>R: Only the files the scope allows
+        R->>R: Re-hash files, compare with on-chain hashes
+    else consent missing, revoked or expired
+        SC->>SC: Log DENIED with reason, emit AccessDenied
+        SC-->>R: granted = false, no data
+    end
+    U->>SC: revokeConsent(provider)
+    Note over G,R: From now on: DENIED (REVOKED) on-chain,<br/>and the gatekeeper refuses old transactions

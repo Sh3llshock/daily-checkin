@@ -2,8 +2,9 @@
 pragma solidity ^0.8.28;
 
 // AI-assisted: this test file was generated with Claude Code (Claude Opus 5.5)
-// on 2026-09-30. Per the coursebook GenAI rules it must be fully reviewed by
-// the team before submission and declared in the report's AI statement.
+// on 2026-09-30 and updated for TASKS A1-A4 on 2026-10-01. Per the coursebook
+// GenAI rules it must be fully reviewed by the team before submission and
+// declared in the report's AI statement.
 
 import "forge-std/Test.sol";
 import "./DataSharingManager.sol";
@@ -62,8 +63,7 @@ contract DigitalIdentityPlatformTest is Test {
         return dsm.requestAccess(user);
     }
 
-    function _logsOf(address user) internal returns (AccessLogger.LogEntry[] memory) {
-        vm.prank(user);
+    function _logsOf(address user) internal view returns (AccessLogger.LogEntry[] memory) {
         return logger.getLogs(user);
     }
 
@@ -93,23 +93,25 @@ contract DigitalIdentityPlatformTest is Test {
 
         AccessLogger.LogEntry[] memory entries = _logsOf(user1);
         assertEq(entries.length, 2);
+        assertEq(entries[0].requester, hospital);
         assertEq(uint8(entries[0].outcome), uint8(AccessLogger.Outcome.GRANTED));
+        assertEq(entries[1].requester, hospital);
         assertEq(uint8(entries[1].outcome), uint8(AccessLogger.Outcome.DENIED));
-        assertEq(entries[1].reason, "REVOKED");
+        assertEq(uint8(entries[1].reason), uint8(AccessLogger.Reason.REVOKED));
 
         assertEq(token.balanceOf(user1), REWARD); // reward kept, nothing extra minted
     }
 
-    /// Consent lapses on its own; renewing it restores access without a new reward.
+    /// A 1-day consent lapses on its own; renewing it restores access without a new reward.
     function test_ConsentExpiresAndCanBeRenewed() public {
         _register(user1, "test-user-1");
         registry.setRequesterStatus(hospital, true);
-        _grant(user1, hospital, ConsentManager.Scope.BOTH, 7);
+        _grant(user1, hospital, ConsentManager.Scope.BOTH, 1);
 
         (bool granted, , , ) = _request(hospital, user1);
         assertTrue(granted);
 
-        vm.warp(block.timestamp + 7 days + 1);
+        vm.warp(block.timestamp + 1 days + 1);
         (granted, , , ) = _request(hospital, user1);
         assertFalse(granted);
 
@@ -119,7 +121,7 @@ contract DigitalIdentityPlatformTest is Test {
 
         AccessLogger.LogEntry[] memory entries = _logsOf(user1);
         assertEq(entries.length, 3);
-        assertEq(entries[1].reason, "EXPIRED");
+        assertEq(uint8(entries[1].reason), uint8(AccessLogger.Reason.EXPIRED));
         assertEq(token.balanceOf(user1), REWARD);
     }
 
@@ -167,12 +169,19 @@ contract DigitalIdentityPlatformTest is Test {
         (granted, , , ) = _request(lab, user1);
         assertFalse(granted);
 
-        assertEq(_logsOf(user1).length, 2);
-        assertEq(_logsOf(user2).length, 2);
-
-        vm.prank(user1);
-        vm.expectRevert("AccessLogger: not authorized");
-        logger.getLogs(user2);
+        // each user's log holds exactly the attempts on their own record
+        AccessLogger.LogEntry[] memory logs1 = _logsOf(user1);
+        AccessLogger.LogEntry[] memory logs2 = _logsOf(user2);
+        assertEq(logs1.length, 2);
+        assertEq(logs1[0].requester, hospital);
+        assertEq(uint8(logs1[0].outcome), uint8(AccessLogger.Outcome.GRANTED));
+        assertEq(logs1[1].requester, lab);
+        assertEq(uint8(logs1[1].outcome), uint8(AccessLogger.Outcome.DENIED));
+        assertEq(logs2.length, 2);
+        assertEq(logs2[0].requester, hospital);
+        assertEq(uint8(logs2[0].outcome), uint8(AccessLogger.Outcome.DENIED));
+        assertEq(logs2[1].requester, lab);
+        assertEq(uint8(logs2[1].outcome), uint8(AccessLogger.Outcome.GRANTED));
 
         assertEq(token.balanceOf(user1), REWARD);
         assertEq(token.balanceOf(user2), REWARD);
@@ -186,32 +195,70 @@ contract DigitalIdentityPlatformTest is Test {
         vm.expectRevert("ConsentManager: requester not whitelisted");
         consent.setConsent(unapproved, ConsentManager.Scope.BOTH, 30);
 
-        (bool granted, , , ) = _request(unapproved, user1);
-        assertFalse(granted);
+        vm.prank(unapproved);
+        vm.expectRevert("DataSharingManager: requester not whitelisted");
+        dsm.requestAccess(user1);
 
-        AccessLogger.LogEntry[] memory entries = _logsOf(user1);
-        assertEq(entries.length, 1);
-        assertEq(entries[0].requester, unapproved);
-        assertEq(entries[0].reason, "NO_CONSENT");
+        assertEq(_logsOf(user1).length, 0); // nothing to spam the user's log with
     }
 
-    /// The admin manages the whitelist but cannot read data, revoke consent or write logs.
+    /// The admin manages the whitelist but cannot read data, revoke consent,
+    /// write logs or mint, and the wiring can't be re-pointed to allow it.
     function test_AdminCannotBypassUserControl() public {
         _register(user1, "test-user-1");
         registry.setRequesterStatus(hospital, true);
         _grant(user1, hospital, ConsentManager.Scope.BOTH, 30);
 
-        (bool granted, , , ) = dsm.requestAccess(user1);
+        // not a requester: reverts
+        vm.expectRevert("DataSharingManager: requester not whitelisted");
+        dsm.requestAccess(user1);
+
+        // whitelisting itself doesn't help: no consent, so DENIED and logged
+        registry.setRequesterStatus(address(this), true);
+        (bool granted, string memory link, , ) = dsm.requestAccess(user1);
         assertFalse(granted);
+        assertEq(bytes(link).length, 0);
+        AccessLogger.LogEntry[] memory entries = _logsOf(user1);
+        assertEq(entries.length, 1);
+        assertEq(entries[0].requester, address(this));
+        assertEq(uint8(entries[0].reason), uint8(AccessLogger.Reason.NO_CONSENT));
 
         vm.expectRevert("ConsentManager: no such consent");
         consent.revokeConsent(hospital);
         assertTrue(consent.isConsentValid(user1, hospital));
 
         vm.expectRevert("AccessLogger: caller is not DataSharingManager");
-        logger.logAccess(user1, hospital, AccessLogger.Outcome.GRANTED, "");
+        logger.logAccess(user1, hospital, AccessLogger.Outcome.GRANTED, AccessLogger.Reason.NONE);
 
         vm.expectRevert("AccessToken: caller is not minter");
         token.mintReward(address(this), REWARD);
+
+        // TASKS A1: the wiring is one-time, so the admin can't re-point it at itself
+        vm.expectRevert("AccessToken: minter already set");
+        token.setMinter(address(this));
+        vm.expectRevert("AccessLogger: manager already set");
+        logger.setDataSharingManager(address(this));
+    }
+
+    /// DataSharingManager's decision always agrees with ConsentManager.isConsentValid,
+    /// at any point in the consent's life (before expiry, at it, after it, after revoke).
+    function testFuzz_AccessDecisionMatchesConsentValidity(uint256 durationDays, uint256 elapsed, bool revoke)
+        public
+    {
+        durationDays = bound(durationDays, 1, 365);
+        elapsed = bound(elapsed, 0, 400 days);
+        _register(user1, "test-user-1");
+        registry.setRequesterStatus(hospital, true);
+        _grant(user1, hospital, ConsentManager.Scope.BOTH, durationDays);
+        if (revoke) {
+            vm.prank(user1);
+            consent.revokeConsent(hospital);
+        }
+
+        vm.warp(block.timestamp + elapsed);
+        bool expected = consent.isConsentValid(user1, hospital);
+        (bool granted, , , ) = _request(hospital, user1);
+        assertEq(granted, expected);
+        assertEq(granted, !revoke && elapsed <= durationDays * 1 days);
     }
 }

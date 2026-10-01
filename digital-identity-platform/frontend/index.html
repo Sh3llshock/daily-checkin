@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Digital Identity Platform</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%231f5fbf%22/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./style.css" />
+    <!-- AI-assisted: written with Claude Code (Claude Opus 5.5) on 2026-10-01; must be
+         reviewed by the team and declared in the report's AI statement. -->
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <h1>Digital Identity Platform</h1>
+        <p class="sub">Local Hardhat network · fake data only</p>
+      </div>
+      <label class="account">
+        <span>Acting as</span>
+        <select id="account"></select>
+      </label>
+    </header>
+
+    <dl class="status" id="status"></dl>
+
+    <nav class="tabs" role="tablist" aria-label="Roles">
+      <button role="tab" id="tab-patient" aria-controls="patient" aria-selected="true">Patient</button>
+      <button role="tab" id="tab-provider" aria-controls="provider" aria-selected="false" tabindex="-1">Provider</button>
+      <button role="tab" id="tab-admin" aria-controls="admin" aria-selected="false" tabindex="-1">Admin</button>
+      <button role="tab" id="tab-log" aria-controls="log" aria-selected="false" tabindex="-1">Audit log</button>
+    </nav>
+
+    <main>
+      <!-- Patient: identity + consent -->
+      <section id="patient" role="tabpanel" aria-labelledby="tab-patient" tabindex="0">
+        <article class="card">
+          <h2>Your identity</h2>
+          <div id="identity"></div>
+          <form id="register-form" class="form" hidden>
+            <p class="hint">
+              Your ID files stay on your machine; only their SHA-256 hashes go on-chain. Create fake files with
+              <code id="fake-data-cmd"></code>, then choose them below.
+            </p>
+            <label>Email <input id="email" type="email" required placeholder="name@example.invalid" /></label>
+            <label><span>Front of ID (<code>id_front.json</code>)</span> <input id="front-file" type="file" accept=".json" required /></label>
+            <label><span>Back of ID (<code>id_back.json</code>)</span> <input id="back-file" type="file" accept=".json" required /></label>
+            <label>Gatekeeper URL <input id="gatekeeper-url" type="url" value="http://127.0.0.1:8600" required /></label>
+            <button type="submit" id="register-btn">Register</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <h2>Grant consent</h2>
+          <form id="consent-form" class="form">
+            <label>Provider
+              <select id="consent-requester" required></select>
+            </label>
+            <label>What they may see
+              <select id="consent-scope">
+                <option value="2">Both sides of the ID</option>
+                <option value="0">Front only</option>
+                <option value="1">Back only</option>
+              </select>
+            </label>
+            <label>For how many days (1–365) <input id="consent-days" type="number" min="1" max="365" value="30" required /></label>
+            <button type="submit">Grant consent</button>
+          </form>
+        </article>
+
+        <article class="card wide">
+          <h2>Your consents</h2>
+          <p class="hint">Rebuilt from the <code>ConsentGranted</code> / <code>ConsentRevoked</code> events, with each record's current state.</p>
+          <div id="consents"></div>
+        </article>
+      </section>
+
+      <!-- Provider: request access, then fetch from the gatekeeper -->
+      <section id="provider" role="tabpanel" aria-labelledby="tab-provider" tabindex="0" hidden>
+        <article class="card">
+          <h2>Request access</h2>
+          <form id="request-form" class="form">
+            <label>Patient
+              <select id="request-user" required></select>
+            </label>
+            <button type="submit">Request access</button>
+          </form>
+          <p class="hint">Every attempt is logged on the patient's record, granted or denied.</p>
+        </article>
+
+        <article class="card wide" id="request-result" hidden>
+          <h2>Result</h2>
+          <div id="request-outcome"></div>
+          <button type="button" id="fetch-btn" hidden>Fetch the files from the gatekeeper</button>
+          <div id="files"></div>
+        </article>
+      </section>
+
+      <!-- Admin: whitelist -->
+      <section id="admin" role="tabpanel" aria-labelledby="tab-admin" tabindex="0" hidden>
+        <article class="card">
+          <h2>Requester whitelist</h2>
+          <form id="whitelist-form" class="form">
+            <label>Requester address
+              <input id="whitelist-address" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" list="known-accounts" />
+            </label>
+            <datalist id="known-accounts"></datalist>
+            <div class="row">
+              <button type="submit" data-approve="true">Approve</button>
+              <button type="submit" data-approve="false" class="secondary">Remove</button>
+            </div>
+          </form>
+          <p class="hint" id="admin-hint">Only the admin (account #0) can change the whitelist. The admin can't see files, grant consent or edit logs.</p>
+        </article>
+        <article class="card wide">
+          <h2>Requesters</h2>
+          <div id="requesters"></div>
+        </article>
+      </section>
+
+      <!-- Audit log -->
+      <section id="log" role="tabpanel" aria-labelledby="tab-log" tabindex="0" hidden>
+        <article class="card wide">
+          <h2>Access log</h2>
+          <form id="log-form" class="form inline">
+            <label>Patient <select id="log-user"></select></label>
+            <button type="submit" class="secondary">Show</button>
+          </form>
+          <p class="hint">Append-only and public: anyone can read it, nobody can edit it.</p>
+          <div id="log-entries"></div>
+        </article>
+      </section>
+    </main>
+
+    <!-- Both regions stay in the page so screen readers announce new text in them. -->
+    <div id="toast" class="toast ok" role="status" aria-live="polite"></div>
+    <div id="alert" class="toast error" role="alert" hidden>
+      <span id="alert-text"></span>
+      <button type="button" id="alert-close" class="small" aria-label="Dismiss the error">Dismiss</button>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

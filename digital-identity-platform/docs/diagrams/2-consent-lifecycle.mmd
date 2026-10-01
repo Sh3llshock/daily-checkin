@@ -1,0 +1,13 @@
+stateDiagram-v2
+    direction TB
+    state "<b>No consent</b><br/><i>requestAccess → DENIED: NO_CONSENT</i>" as NoConsent
+    state "<b>Active</b><br/><i>requestAccess → GRANTED</i><br/>setConsent again: new scope/expiry, no reward" as Active
+    state "<b>Revoked</b><br/><i>requestAccess → DENIED: REVOKED</i>" as Revoked
+    state "<b>Expired</b><br/><i>requestAccess → DENIED: EXPIRED</i>" as Expired
+
+    [*] --> NoConsent
+    NoConsent --> Active: setConsent(requester, scope, 1–365 days)<br/>first grant mints 10 ACT
+    Active --> Revoked: revokeConsent<br/>(owner only)
+    Active --> Expired: now > expiresAt<br/>(no transaction)
+    Revoked --> Active: setConsent<br/>(no reward)
+    Expired --> Active: setConsent<br/>(no reward)

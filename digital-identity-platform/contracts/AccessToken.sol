@@ -17,9 +17,14 @@ contract AccessToken is ERC20, Ownable {
     constructor() ERC20("Access Token", "ACT") Ownable(msg.sender) {}
 
     /// @notice Restrict minting to a single designated contract (ConsentManager).
-    /// Only the platform owner can (re)point this, and only once at deployment
-    /// under normal operation.
+    /// Owner only, and only once: after the first call the minter can never
+    /// change again, so not even the owner can later point minting at their
+    /// own wallet. Anyone can check `minter()` against the ConsentManager address.
+    /// @dev Not a constructor argument because ConsentManager takes this token's
+    /// address in *its* constructor, so the token has to be deployed first and
+    /// wired afterwards (see ignition/modules/DigitalIdentityPlatform.ts).
     function setMinter(address newMinter) external onlyOwner {
+        require(minter == address(0), "AccessToken: minter already set");
         require(newMinter != address(0), "AccessToken: zero minter");
         minter = newMinter;
         emit MinterUpdated(newMinter);

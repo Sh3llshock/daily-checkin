@@ -1,0 +1,11 @@
+{
+  "country": "UTO",
+  "date_of_birth": "1962-04-11",
+  "document": "NATIONAL IDENTITY CARD (SPECIMEN)",
+  "expiry_date": "2033-07-17",
+  "given_names": "ALEX",
+  "id_number": "TST-9764-6694",
+  "photo": "placeholder-no-real-photo",
+  "surname": "SPECIMEN",
+  "synthetic_test_data": true
+}

@@ -19,9 +19,9 @@ setup as the course labs) so they compile and deploy locally.
 |---|---|---|
 | `DigitalIdentityRegistry` | `contracts/DigitalIdentityRegistry.sol` | `registerUser`, `updateDocument`, `getUserRecord`, `setRequesterStatus` (admin), `isApprovedRequester`, `isRegistered` |
 | `ConsentManager` | `contracts/ConsentManager.sol` | `setConsent` (1–365 days, scoped, mints ACT reward), `revokeConsent`, `isConsentValid`, `getConsent`, admin `setRewardAmount` |
-| `AccessLogger` | `contracts/AccessLogger.sol` | Append-only `logAccess` (callable only by `DataSharingManager`), `getLogs` (self or admin only), `getLogCount` — no delete/edit function exists |
-| `DataSharingManager` | `contracts/DataSharingManager.sol` | `requestAccess` — checks consent via `ConsentManager`, releases the link + hash(es) allowed by the granted scope, and logs every attempt (granted or denied) via `AccessLogger` |
-| `AccessToken` (`ACT`, ERC-20) | `contracts/AccessToken.sol` | `mintReward` restricted to a single `minter` address (set to `ConsentManager`); never referenced by any access-control check |
+| `AccessLogger` | `contracts/AccessLogger.sol` | Append-only `logAccess` (callable only by `DataSharingManager`, wired once with `setDataSharingManager`), public `getLogs` and `getLogCount` — no delete/edit function exists |
+| `DataSharingManager` | `contracts/DataSharingManager.sol` | `requestAccess` — rejects callers that aren't whitelisted, checks consent with one `getConsent` read, releases the link + hash(es) allowed by the granted scope, and logs every attempt (granted or denied) via `AccessLogger` |
+| `AccessToken` (`ACT`, ERC-20) | `contracts/AccessToken.sol` | `mintReward` restricted to a single `minter` address (set once to `ConsentManager`); never referenced by any access-control check |
 
 ### Design decisions carried from Step 2 into code
 
@@ -50,25 +50,51 @@ setup as the course labs) so they compile and deploy locally.
   reads an ACT balance anywhere in its access-check logic.
 - **Requester whitelisting (domain addition)** — `ConsentManager.setConsent` requires
   `registry.isApprovedRequester(requester)`, so consent can only ever be granted to
-  an address the admin has recognized as a legitimate healthcare provider.
+  an address the admin has recognized as a legitimate healthcare provider, and
+  `DataSharingManager.requestAccess` requires the *caller* to be whitelisted too: a
+  stranger can't fill a user's log with spam, and a requester the admin removes
+  loses access immediately, even under a consent that hasn't expired.
+- **One-time wiring** — `AccessToken.setMinter` and `AccessLogger.setDataSharingManager`
+  only work while the value is still `address(0)`. The deployment module calls each
+  once, so afterwards not even the admin can mint ACT or write log entries. They
+  can't be constructor arguments because ConsentManager and DataSharingManager take
+  the token's and logger's addresses in their own constructors (see Step 2 §B.4).
+- **The log is public** — `getLogs` has no caller check, because all contract state
+  and events are readable by anyone anyway (Lecture 7 §2.1).
+- **Gas-driven storage layout** — denial reasons are a one-byte enum, and a log entry
+  and a consent record each fit in one storage slot (`uint64` timestamps); see Step 4
+  for the before/after measurements.
 
-## Project layout added in this step
+## Off-chain modules (Python, `offchain/`)
+
+The brief asks for the user's data to stay local and prefers Python for components
+around the contracts. All data used is fake (`fake_data.py`).
+
+| File | Role |
+|---|---|
+| `fake_data.py` | Writes a user's fake ID files: `data/<address>/id_front.json`, `id_back.json` (+ a local-only `profile.json` with the email) |
+| `hash_tool.py` | SHA-256 of each file as `bytes32`, ready for `registerUser`; CLI: `python offchain/hash_tool.py offchain/data/<address>` |
+| `gatekeeper.py` | The data holder: an HTTP server that releases files only for a fresh, signed, GRANTED `requestAccess` transaction while consent is still valid, filtered by scope; plus the requester-side client and hash check |
+| `simulate.py` | Step 5 multi-user simulation and scaling tables |
+| `demo.py` | The short presentation demo (one patient, one provider) |
+| `test_gatekeeper.py` | 15 tests of the gatekeeper against the local chain, one per refusal reason |
+| `common.py` | Connection, ABIs from `artifacts/`, addresses from Ignition, accounts, timed transaction sending |
+
+## Project layout
 
 ```
 digital-identity-platform/
 ├── contracts/
-│   ├── AccessToken.sol
-│   ├── DigitalIdentityRegistry.sol
-│   ├── ConsentManager.sol
-│   ├── AccessLogger.sol
-│   └── DataSharingManager.sol
-├── ignition/
-│   └── modules/
-│       └── DigitalIdentityPlatform.ts   # deploys all 5 contracts and wires them together
-├── hardhat.config.ts
-├── package.json
-├── tsconfig.json
-└── .gitignore              # node_modules/, artifacts/, cache/ excluded from git
+│   ├── AccessToken.sol, DigitalIdentityRegistry.sol, ConsentManager.sol,
+│   │   AccessLogger.sol, DataSharingManager.sol      # the 5 contracts
+│   ├── *.t.sol                                       # Solidity tests (Step 4)
+│   └── experiments/EventsOnlyAccessLogger.sol        # gas experiment, never deployed
+├── ignition/modules/DigitalIdentityPlatform.ts       # deploys all 5 and wires them once
+├── scripts/gas-benchmark.ts                          # per-scenario gas (Step 4)
+├── offchain/                                         # Python: data, gatekeeper, simulation
+├── docs/                                             # step docs, diagrams, gas data, report drafts
+├── hardhat.config.ts, package.json, tsconfig.json
+└── .gitignore
 ```
 
 ## How to compile and deploy locally
@@ -101,5 +127,7 @@ were verified locally, both on Hardhat's in-memory network and against `npx hard
   an Ignition deployment module (`ignition/modules/DigitalIdentityPlatform.ts`) that
   deploys and wires all five contracts together, confirmed to compile and deploy
   successfully on Hardhat's local network.
-- Formal unit/integration tests and gas-usage measurement are the Step 4 deliverable
-  and are not included here.
+- **Complementary Python modules** (`offchain/`): local fake data, SHA-256 hashing,
+  the consent-enforcing gatekeeper, the simulation and the demo.
+- Tests and gas measurements are in [`step4-deliverable.md`](step4-deliverable.md);
+  deployment and the simulation in [`step5-deliverable.md`](step5-deliverable.md).

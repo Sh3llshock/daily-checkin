@@ -29,8 +29,9 @@ centralized, ad-hoc mechanisms:
   providers, while providers and intermediaries capture all the value.
 
 Our platform addresses this by keeping the actual ID images **off-chain**, under the
-patient's control (at a link they choose/manage), and putting only a **hash-based
-integrity fingerprint** plus **consent and access records** on a blockchain. This gives
+patient's control (in a local data store served by a consent-checking *gatekeeper*),
+and putting only a **hash-based integrity fingerprint** plus **consent and access
+records** on a blockchain. This gives
 patients visibility, revocability, and an immutable audit trail, while giving
 requesters a way to verify both the *integrity* of the ID (via the hash) and the
 *authorization* to view it (via on-chain consent), without any party other than the
@@ -38,12 +39,14 @@ patient ever holding a copy of the actual images inside the platform itself.
 
 ## 1.2 Research: How Existing Systems Handle This
 
+Sources are numbered as in [`references.md`](references.md).
+
 | System / Approach | What it does | What works | What doesn't work |
 |---|---|---|---|
-| Hospital-managed patient portals (e.g., MyChart-style systems) | Hospital stores scanned ID/insurance card centrally per patient | Familiar, integrated with existing records | Fully centralized: one breach exposes all patients; no cross-provider portability; patient can't see who else viewed the file; no revocation |
-| National eID / digital identity schemes (e.g., EU eIDAS, Estonia e-ID, India Aadhaar-linked eKYC) | Government-issued digital credential, verified via central or federated authority | Strong identity assurance, broad acceptance | Centralized verification authority is a single point of failure/surveillance; users have limited control over *which* attributes are disclosed to *which* verifier and for how long; access logs (if they exist) are not user-auditable |
-| Third-party KYC/identity-verification vendors (used by fintechs and some health insurers) | Vendor collects ID photos + selfie, verifies, stores results, resells "verified" status | Convenient one-time verification reused across services | Patient's raw ID images sit in a for-profit vendor's database indefinitely; patient has no say in which future clients the vendor shares "verification" with; several vendors have suffered large-scale ID-image breaches |
-| Self-Sovereign Identity / Verifiable Credentials (W3C DID/VC standard) | User holds credentials in a wallet, presents cryptographic proofs instead of raw documents, issuer/verifier model | Strong privacy model, user holds the credential, selective disclosure possible | Standard alone doesn't solve *where the underlying document lives*, *how consent is time-boxed*, or *how access is logged*; adoption/tooling still maturing for raw-document use cases like a photographed government ID |
+| Hospital-managed patient portals (e.g., MyChart-style systems [1]) | Hospital stores scanned ID/insurance card centrally per patient | Familiar, integrated with existing records | Fully centralized: one breach exposes all patients (the 2024 Change Healthcare attack affected ~190 million people [2]); no cross-provider portability; patient can't see who else viewed the file; no revocation |
+| National eID / digital identity schemes (e.g., EU eIDAS [3], [4], Estonia e-ID, India Aadhaar-linked eKYC) | Government-issued digital credential, verified via central or federated authority | Strong identity assurance, broad acceptance | Centralized verification authority is a single point of failure/surveillance (one chip flaw affected every Estonian ID card in 2017 [5]; Aadhaar data was reportedly sold for Rs 500 in 2018 [6]); users have limited control over *which* attributes are disclosed to *which* verifier and for how long (eIDAS 2 now requires selective disclosure in the EU wallet [4]); access logs (if they exist) are not user-auditable |
+| Third-party KYC/identity-verification vendors (used by fintechs and some health insurers) | Vendor collects ID photos + selfie, verifies, stores results, resells "verified" status | Convenient one-time verification reused across services | Patient's raw ID images sit in a for-profit vendor's database indefinitely; patient has no say in which future clients the vendor shares "verification" with; ID images held by vendors have leaked (AU10TIX admin credentials exposed for over a year, 2024 [7]; ~70,000 government-ID photos exposed through Discord's support vendor, 2025 [8]) |
+| Self-Sovereign Identity / Verifiable Credentials (W3C DID [9] / VC [10] standards) | User holds credentials in a wallet, presents cryptographic proofs instead of raw documents, issuer/verifier model | Strong privacy model, user holds the credential, selective disclosure possible | Standard alone doesn't solve *where the underlying document lives*, *how consent is time-boxed*, or *how access is logged*; adoption/tooling still maturing for raw-document use cases like a photographed government ID |
 | Paper/physical ID photocopies at front desks | Manual copy kept in a folder/file cabinet or scanned into local system | Simple, no tech required | No log at all of who later pulled the file; no expiry; no revocation; physical or local-drive breaches are common and undetected for long periods |
 
 **Takeaways we carry into our design:**
@@ -61,15 +64,16 @@ patient ever holding a copy of the actual images inside the platform itself.
 | Role | Who (in our domain) | Initiates | Can do |
 |---|---|---|---|
 | **Identity Owner ("User")** | The patient (e.g., George) | Registration, consent grants, consent revocations, document link updates | Register their identity; upload ID front/back off-chain and register the link + hashes on-chain; grant consent to specific requesters for a specific duration; revoke consent at any time; view their own full access log; earn ACT tokens when granting consent |
-| **Requester** | Healthcare providers needing identity verification: doctors, hospital admissions staff, clinics, labs, health insurers | Access requests | Request access to a user's ID reference (link + hashes) *only* — the smart contract checks for valid, non-expired, non-revoked consent before releasing anything; every attempt (granted or denied) is logged automatically, with no ability for the requester to alter or suppress the log entry |
+| **Requester** | Healthcare providers needing identity verification: doctors, hospital admissions staff, clinics, labs, health insurers | Access requests | Once whitelisted by the admin, request access to a user's ID: the smart contract checks for valid, non-expired, non-revoked consent, and every attempt (granted or denied) is logged automatically, with no ability for the requester to alter or suppress the log entry. A GRANTED transaction is then shown to the gatekeeper, which releases only the files the consent scope allows. Addresses that aren't whitelisted can't call `requestAccess` at all (it reverts) |
 | **Administrator** | Platform operator / contract owner (e.g., a healthcare-network consortium multisig) | Deployment, parameter configuration | Deploys the contracts; configures the ACT token reward amount; can register/whitelist requester addresses as legitimate healthcare entities (so random addresses can't spam access requests); **cannot** read user documents, **cannot** grant or revoke consent on a user's behalf, **cannot** delete audit log entries |
 
 Permission summary:
 
 - Only the **Identity Owner** can grant/revoke their own consent (`msg.sender ==
   owner` enforced in the contract).
-- Only an address holding **valid consent** may successfully retrieve a user's
-  document reference; anyone else's attempt is logged as denied and returns no data.
+- Only a whitelisted requester holding **valid consent** gets the user's files
+  (through the gatekeeper); any other whitelisted requester's attempt is logged as
+  denied and gets no data, and non-whitelisted addresses are rejected outright.
 - Only the **Administrator** may register new requester entities and adjust system
   parameters (e.g., token reward rate) — the admin role is intentionally kept out of
   the data path entirely.
@@ -110,40 +114,21 @@ Permission summary:
     that consent can only be granted to entities recognized as legitimate providers
     (reduces risk of granting consent to a typo'd or malicious address).
 11. **Hash-based integrity verification (domain-specific addition)** — once a
-    requester retrieves the document link off-chain, they re-hash the downloaded
-    images and compare against the on-chain hashes to detect tampering or a stale/
-    substituted file at that link.
+    requester receives the files from the gatekeeper, they re-hash them and compare
+    against the on-chain hashes to detect tampering or a stale/substituted file.
+12. **Consent-enforcing gatekeeper (domain-specific addition)** — everything on-chain
+    is public, so the off-chain data holder releases a user's files only to a
+    requester that presents its own recent, successful `requestAccess` transaction
+    containing an `AccessGranted` event, signed with the same key, while consent is
+    still valid; it returns only the files the consent scope allows. No GRANTED log
+    entry, no data.
 
 ## 1.5 High-Level Overview of System Interaction
 
-```mermaid
-sequenceDiagram
-    actor U as User (George)
-    participant OffChain as Off-chain Storage<br/>(link.com/george)
-    participant SC as Smart Contracts<br/>(Identity, Consent, Access, Token)
-    actor R as Requester (Dr. Kostas)
-    actor A as Administrator
+![Interaction overview](diagrams/1-interaction-sequence.png)
 
-    A->>SC: Whitelist Dr. Kostas as verified requester
-    U->>OffChain: Upload ID front & back photos
-    OffChain-->>U: Returns link + (locally computed) SHA-256 hashes
-    U->>SC: registerUser(emailHash, link, frontHash, backHash)
-    U->>SC: setConsent(Dr. Kostas, 30 days, scope=BOTH)
-    SC-->>U: Mint/transfer ACT reward tokens
-    R->>SC: requestAccess(George)
-    SC->>SC: Check consent valid? (not expired, not revoked)
-    alt consent valid
-        SC-->>R: Return link + hashes
-        SC->>SC: logAccess(George, Dr. Kostas, GRANTED)
-        R->>OffChain: Fetch images from link
-        R->>R: Re-hash images, compare to on-chain hashes (integrity check)
-    else consent invalid/expired/missing
-        SC->>SC: logAccess(George, Dr. Kostas, DENIED)
-        SC-->>R: granted = false, no data returned
-    end
-    U->>SC: revokeConsent(Dr. Kostas)  %% at any time before expiry
-    Note over SC: Any future requestAccess by Dr. Kostas<br/>is now logged as DENIED
-```
+Source: [`diagrams/1-interaction-sequence.mmd`](diagrams/1-interaction-sequence.mmd)
+(re-render with `docs/diagrams/render.sh`).
 
 This overview is expanded into concrete data structures, consent-lifecycle diagrams,
 and smart-contract function signatures in
@@ -162,11 +147,11 @@ and smart-contract function signatures in
 - **Defined user roles** — Section 1.3: **User/Identity Owner** (patient), **Requester**
   (doctor/hospital/insurer), **Administrator** (deployment + requester whitelisting
   only, no access to consent or data), with a permissions summary for each.
-- **Functional requirements** — Section 1.4: 11 numbered requirements covering
+- **Functional requirements** — Section 1.4: 12 numbered requirements covering
   registration, document-reference updates, scoped time-limited consent (1–365 days),
   revocation, auto-expiry, gated access checks, full granted/denied access logging,
-  token incentives, non-transfer of data ownership, requester whitelisting, and
-  hash-based tamper verification.
-- **High-level interaction overview** — Section 1.5: a Mermaid sequence diagram
-  tracing the full lifecycle (whitelist → upload → register → grant consent → access
-  request → grant/deny + log → revoke) end to end.
+  token incentives, non-transfer of data ownership, requester whitelisting,
+  hash-based tamper verification, and the consent-enforcing gatekeeper.
+- **High-level interaction overview** — Section 1.5: a sequence diagram tracing the
+  full lifecycle (whitelist → store + hash → register → grant consent → access
+  request → grant/deny + log → gatekeeper release → revoke) end to end.

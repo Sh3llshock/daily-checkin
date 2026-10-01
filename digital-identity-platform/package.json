@@ -8,8 +8,10 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:gas": "hardhat test --gas-stats",
+    "gas:bench": "hardhat run scripts/gas-benchmark.ts",
     "node": "hardhat node",
-    "deploy:local": "hardhat ignition deploy ignition/modules/DigitalIdentityPlatform.ts --network localhost"
+    "deploy:local": "hardhat ignition deploy ignition/modules/DigitalIdentityPlatform.ts --network localhost",
+    "frontend": "vite --config frontend/vite.config.js"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.1.8",
@@ -18,7 +20,8 @@
     "forge-std": "github:foundry-rs/forge-std#v1.16.2",
     "hardhat": "^3.15.0",
     "typescript": "~6.0.3",
-    "viem": "^2.56.3"
+    "viem": "^2.56.3",
+    "vite": "^7.3.6"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.6.1"

@@ -1,0 +1,7 @@
+op,avg_gas_N5,avg_gas_N10,avg_gas_N25,avg_gas_N50,spread_pct
+registerUser,205958,205952,205954,205954,0.0
+setRequesterStatus,47787,47787,47787,47787,0.0
+setConsent,96676,93256,93257,93257,3.67
+requestAccess (granted),106319,106318,106320,106320,0.0
+revokeConsent,28825,28825,28825,28825,0.0
+requestAccess (denied),72302,72302,72302,72301,0.0

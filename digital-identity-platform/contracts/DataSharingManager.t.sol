@@ -2,8 +2,9 @@
 pragma solidity ^0.8.28;
 
 // AI-assisted: this test file was generated with Claude Code (Claude Opus 5.5)
-// on 2026-09-30. Per the coursebook GenAI rules it must be fully reviewed by
-// the team before submission and declared in the report's AI statement.
+// on 2026-09-30 and updated for TASKS A1-A4 on 2026-10-01. Per the coursebook
+// GenAI rules it must be fully reviewed by the team before submission and
+// declared in the report's AI statement.
 
 import "forge-std/Test.sol";
 import "./DataSharingManager.sol";
@@ -59,11 +60,11 @@ contract DataSharingManagerTest is Test {
     }
 
     function _lastLog() internal view returns (AccessLogger.LogEntry memory) {
-        AccessLogger.LogEntry[] memory entries = logger.getLogs(user); // read as admin
+        AccessLogger.LogEntry[] memory entries = logger.getLogs(user);
         return entries[entries.length - 1];
     }
 
-    function _assertDenied(address from, string memory expectedReason) internal {
+    function _assertDenied(address from, AccessLogger.Reason expectedReason) internal {
         (bool granted, string memory link, bytes32 front, bytes32 back) = _request(from);
         assertFalse(granted);
         assertEq(bytes(link).length, 0);
@@ -73,7 +74,7 @@ contract DataSharingManagerTest is Test {
         AccessLogger.LogEntry memory entry = _lastLog();
         assertEq(entry.requester, from);
         assertEq(uint8(entry.outcome), uint8(AccessLogger.Outcome.DENIED));
-        assertEq(entry.reason, expectedReason);
+        assertEq(uint8(entry.reason), uint8(expectedReason));
     }
 
     // --- Granted path ---
@@ -114,14 +115,14 @@ contract DataSharingManagerTest is Test {
         assertEq(entry.requester, requester);
         assertEq(entry.timestamp, block.timestamp);
         assertEq(uint8(entry.outcome), uint8(AccessLogger.Outcome.GRANTED));
-        assertEq(entry.reason, "");
+        assertEq(uint8(entry.reason), uint8(AccessLogger.Reason.NONE));
     }
 
     function test_GrantedAccessEmitsEvents() public {
         _grant(ConsentManager.Scope.BOTH, 30);
 
         vm.expectEmit(true, true, false, true, address(logger));
-        emit AccessLogger.AccessLogged(user, requester, AccessLogger.Outcome.GRANTED, "", block.timestamp);
+        emit AccessLogger.AccessLogged(user, requester, AccessLogger.Outcome.GRANTED, AccessLogger.Reason.NONE, block.timestamp);
         vm.expectEmit(true, true, false, false, address(dsm));
         emit DataSharingManager.AccessGranted(user, requester);
         _request(requester);
@@ -130,7 +131,7 @@ contract DataSharingManagerTest is Test {
     // --- Denied path: returns false instead of reverting, and is still logged ---
 
     function test_NoConsentIsDeniedAndLogged() public {
-        _assertDenied(requester, "NO_CONSENT");
+        _assertDenied(requester, AccessLogger.Reason.NO_CONSENT);
         assertEq(logger.getLogCount(user), 1);
     }
 
@@ -138,31 +139,31 @@ contract DataSharingManagerTest is Test {
         _grant(ConsentManager.Scope.BOTH, 30);
         vm.prank(user);
         consent.revokeConsent(requester);
-        _assertDenied(requester, "REVOKED");
+        _assertDenied(requester, AccessLogger.Reason.REVOKED);
     }
 
     function test_ExpiredConsentIsDenied() public {
         _grant(ConsentManager.Scope.BOTH, 30);
         vm.warp(block.timestamp + 30 days + 1);
-        _assertDenied(requester, "EXPIRED");
+        _assertDenied(requester, AccessLogger.Reason.EXPIRED);
     }
 
     function test_DeniedAccessEmitsEvents() public {
         vm.expectEmit(true, true, false, true, address(logger));
-        emit AccessLogger.AccessLogged(user, requester, AccessLogger.Outcome.DENIED, "NO_CONSENT", block.timestamp);
+        emit AccessLogger.AccessLogged(user, requester, AccessLogger.Outcome.DENIED, AccessLogger.Reason.NO_CONSENT, block.timestamp);
         vm.expectEmit(true, true, false, true, address(dsm));
-        emit DataSharingManager.AccessDenied(user, requester, "NO_CONSENT");
+        emit DataSharingManager.AccessDenied(user, requester, AccessLogger.Reason.NO_CONSENT);
         _request(requester);
     }
 
     function test_ConsentForOneRequesterDoesNotCoverAnother() public {
         _grant(ConsentManager.Scope.BOTH, 30);
-        _assertDenied(otherRequester, "NO_CONSENT");
+        _assertDenied(otherRequester, AccessLogger.Reason.NO_CONSENT);
     }
 
     function test_TokenBalanceDoesNotGrantAccess() public {
-        // A second user earns ACT by consenting to someone else, then tries to
-        // read the first user's record without any consent from them.
+        // A second user earns ACT by consenting to otherRequester and hands it
+        // to `requester`, which now holds ACT but still has no consent from `user`.
         address holder = address(0x1002);
         bytes32 emailHash = keccak256("test-user-2@example.invalid");
         bytes32 front = sha256("test-user-2-front");
@@ -171,9 +172,12 @@ contract DataSharingManagerTest is Test {
         registry.registerUser(emailHash, "https://storage.example.invalid/docs/test-user-2", front, back);
         vm.prank(holder);
         consent.setConsent(otherRequester, ConsentManager.Scope.BOTH, 30);
-        assertGt(token.balanceOf(holder), 0);
+        uint256 reward = token.balanceOf(holder);
+        vm.prank(holder);
+        token.transfer(requester, reward);
+        assertEq(token.balanceOf(requester), reward);
 
-        _assertDenied(holder, "NO_CONSENT");
+        _assertDenied(requester, AccessLogger.Reason.NO_CONSENT);
     }
 
     function test_EveryAttemptIsLogged() public {
@@ -181,7 +185,37 @@ contract DataSharingManagerTest is Test {
         _grant(ConsentManager.Scope.BOTH, 30);
         _request(requester); // granted
         _request(otherRequester); // denied
-        _request(stranger); // denied
-        assertEq(logger.getLogCount(user), 4);
+        assertEq(logger.getLogCount(user), 3);
+    }
+
+    // --- Whitelist (TASKS A2): callers that aren't requesters revert ---
+
+    function test_NonWhitelistedCallerReverts() public {
+        vm.prank(stranger);
+        vm.expectRevert("DataSharingManager: requester not whitelisted");
+        dsm.requestAccess(user);
+
+        // a reverted call leaves nothing in the user's log, so strangers can't spam it
+        assertEq(logger.getLogCount(user), 0);
+    }
+
+    function test_DewhitelistedRequesterLosesAccess() public {
+        _grant(ConsentManager.Scope.BOTH, 30);
+        (bool granted, , , ) = _request(requester);
+        assertTrue(granted);
+
+        registry.setRequesterStatus(requester, false);
+
+        // the user's consent is still valid, but the requester no longer is
+        assertTrue(consent.isConsentValid(user, requester));
+        vm.prank(requester);
+        vm.expectRevert("DataSharingManager: requester not whitelisted");
+        dsm.requestAccess(user);
+        assertEq(logger.getLogCount(user), 1); // only the earlier GRANTED entry
+
+        // re-approving the requester restores access under the same consent
+        registry.setRequesterStatus(requester, true);
+        (granted, , , ) = _request(requester);
+        assertTrue(granted);
     }
 }

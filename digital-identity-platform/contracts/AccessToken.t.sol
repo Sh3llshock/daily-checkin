@@ -2,8 +2,9 @@
 pragma solidity ^0.8.28;
 
 // AI-assisted: this test file was generated with Claude Code (Claude Opus 5.5)
-// on 2026-09-30. Per the coursebook GenAI rules it must be fully reviewed by
-// the team before submission and declared in the report's AI statement.
+// on 2026-09-30 and updated for TASKS A1-A4 on 2026-10-01. Per the coursebook
+// GenAI rules it must be fully reviewed by the team before submission and
+// declared in the report's AI statement.
 
 import "forge-std/Test.sol";
 import "./AccessToken.sol";
@@ -55,35 +56,38 @@ contract AccessTokenTest is Test {
         token.mintReward(address(this), ONE);
     }
 
+    // setUp already wired `token`, so the setMinter tests below use a fresh,
+    // unwired token wherever they need the first call to succeed.
+
     function test_SetMinterEmitsEvent() public {
-        address newMinter = address(0xC0DE2);
-        vm.expectEmit(true, false, false, false, address(token));
-        emit AccessToken.MinterUpdated(newMinter);
-        token.setMinter(newMinter);
-        assertEq(token.minter(), newMinter);
+        AccessToken fresh = new AccessToken();
+        vm.expectEmit(true, false, false, false, address(fresh));
+        emit AccessToken.MinterUpdated(minter);
+        fresh.setMinter(minter);
+        assertEq(fresh.minter(), minter);
     }
 
-    function test_RepointingMinterRevokesOldMinter() public {
-        address newMinter = address(0xC0DE2);
-        token.setMinter(newMinter);
+    function test_MinterCanOnlyBeSetOnce() public {
+        // Not even the owner can re-point minting, e.g. at their own wallet.
+        vm.expectRevert("AccessToken: minter already set");
+        token.setMinter(address(this));
+        assertEq(token.minter(), minter);
 
         vm.prank(minter);
-        vm.expectRevert("AccessToken: caller is not minter");
-        token.mintReward(user, ONE);
-
-        vm.prank(newMinter);
         token.mintReward(user, ONE);
         assertEq(token.balanceOf(user), ONE);
     }
 
     function test_OnlyAdminCanSetMinter() public {
+        AccessToken fresh = new AccessToken();
         vm.prank(stranger);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger));
-        token.setMinter(stranger);
+        fresh.setMinter(stranger);
     }
 
     function test_RejectsZeroMinter() public {
+        AccessToken fresh = new AccessToken();
         vm.expectRevert("AccessToken: zero minter");
-        token.setMinter(address(0));
+        fresh.setMinter(address(0));
     }
 }

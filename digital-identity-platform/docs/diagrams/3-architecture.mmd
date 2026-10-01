@@ -1,0 +1,33 @@
+flowchart TB
+    Admin(["Administrator"])
+    User(["Patient<br/>(identity owner)"])
+    Requester(["Provider<br/>(requester)"])
+
+    subgraph OnChain["On-chain: 5 contracts"]
+        direction TB
+        DSM["<b>DataSharingManager</b><br/>requestAccess"]
+        DIR["<b>DigitalIdentityRegistry</b><br/>registerUser · updateDocument<br/>getUserRecord · setRequesterStatus"]
+        CM["<b>ConsentManager</b><br/>setConsent · revokeConsent<br/>isConsentValid · getConsent"]
+        LOG["<b>AccessLogger</b><br/>logAccess (append-only)<br/>getLogs"]
+        TOK["<b>AccessToken</b> (ACT, ERC-20)<br/>mintReward"]
+    end
+
+    subgraph OffChain["Off-chain (Python)"]
+        direction TB
+        Local[("Local data store<br/>id_front.json · id_back.json<br/>fake data only")]
+        GK["<b>Gatekeeper</b><br/>releases files only for a fresh,<br/>signed, GRANTED requestAccess"]
+    end
+
+    Admin -- "0 whitelist requester" --> DIR
+    User -- "1 store + hash files" --> Local
+    User -- "2 register hashes + link" --> DIR
+    User -- "3 grant / revoke consent" --> CM
+    CM -- "4 first grant: mint ACT" --> TOK
+    Requester -- "5 requestAccess(user)" --> DSM
+    DSM -- "6 whitelisted?" --> DIR
+    DSM -- "7 consent valid? scope?" --> CM
+    DSM -- "8 log GRANTED / DENIED" --> LOG
+    Requester -- "9 tx hash + signature" --> GK
+    GK -- "10 receipt, whitelist,<br/>consent still valid?" --> CM
+    Local --- GK
+    GK -- "11 files the scope allows" --> Requester

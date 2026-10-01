@@ -1,0 +1,22 @@
+% Coursebook format: 10pt Times New Roman, double spaced, A4, 1" margins,
+% numbered pages. (Font size, paper, margins and font are set in build.sh.)
+\usepackage{setspace}
+\doublespacing
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+% Tables, captions and the reference list are single spaced so they stay readable
+% within the page limit. Delete these lines if the TA says everything must be double spaced.
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\singlespacing\footnotesize}
+\usepackage{caption}
+\captionsetup{font={small,singlespacing},labelfont=bf}
+\usepackage{float}
+\floatplacement{figure}{H}
+% Boxes marking text each workstream still has to write (see writer.lua).
+\usepackage[most]{tcolorbox}
+\newtcolorbox{writerbox}{colback=yellow!8,colframe=orange!70!black,boxrule=0.5pt,arc=1pt,left=4pt,right=4pt,top=2pt,bottom=2pt,fontupper=\small\singlespacing}
+\usepackage{xurl}

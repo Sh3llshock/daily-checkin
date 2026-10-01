@@ -1,0 +1,3 @@
+# Same versions as the course .venv (~/Workspace/Uni/blockchains/.venv).
+web3==8.0.0
+eth-account==0.14.0

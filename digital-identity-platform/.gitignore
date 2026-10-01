@@ -9,3 +9,9 @@ dist/
 
 # Local-chain deployments are throwaway: `hardhat node` resets on restart
 ignition/deployments/chain-31337/
+
+# Python
+__pycache__/
+.venv/
+# Simulation users' fake data: regenerated (and wiped) on every simulate.py run
+offchain/sim-data/

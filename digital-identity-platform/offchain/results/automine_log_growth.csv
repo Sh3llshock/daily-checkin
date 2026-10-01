@@ -1,0 +1,5 @@
+log_entries,requestAccess_gas_last_write,getLogs_gas_estimate
+2,89230,30250
+10,89230,54051
+25,89230,98733
+50,89230,173360

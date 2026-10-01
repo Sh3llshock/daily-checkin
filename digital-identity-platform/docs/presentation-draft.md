@@ -8,12 +8,14 @@
 
 **Assumed format:** about 10 minutes of talk, then questions. Rule of thumb: 1 idea per slide, about 45–60 s per slide, big diagrams, few words.
 
-| Speaker | Workstream | Slides | Time |
+> **The deck is built:** [Digital Identity Platform – Project Presentation](https://claude.ai/artifact/Mu3VBe5h2sf3FLTAvUH48f) (13 slides; download it as PowerPoint or PDF from the page, and share it with the team from its Share menu, since it's private until then). It follows this plan, except that slide 10 is split in two (10 gas, 11 scaling), so the slides after it move up one. Fill in the names, group number and lab on the cover. Speaker notes hold the talking points below as cues, not a script.
+
+| Speaker | Workstream | Slides (in the built deck) | Time |
 |---|---|---|---|
-| Speaker 1 | D: report | 1–3, 11–12 | ~3 min |
+| Speaker 1 | D: report | 1–3, 12–13 | ~3 min |
 | Speaker 2 | A: contracts | 4–6 | ~2.5 min |
-| Speaker 3 | C: off-chain | 7–8 (demo) | ~2.5 min |
-| Speaker 4 | B: tests | 9–10 | ~2 min |
+| Speaker 3 | C: off-chain | 7–8 (demo), 11 (scaling) | ~3 min |
+| Speaker 4 | B: tests | 9–10 | ~1.5 min |
 
 ---
 
@@ -73,7 +75,7 @@
 - **On the slide:** "Live demo", plus the backup video, ready to play.
 - **Demo script** (terminal, pre-deployed before the talk):
   1. `npx hardhat node` is already running, and the contracts are deployed (`npm run deploy:local`).
-  2. Run the simulation for a small N, or a short demo script:
+  2. Run `python offchain/demo.py` (it does exactly the steps below and prints each one), or click through them in the front-end (`frontend/README.md`):
      - the patient registers → the admin whitelists → the patient grants 30 days → the provider gets **GRANTED** and the gatekeeper returns the files, with matching hashes;
      - the patient revokes → the provider tries again → **DENIED (REVOKED)**, and the gatekeeper refuses.
   3. Show the patient's access log: 2 entries, GRANTED then DENIED, with timestamps.

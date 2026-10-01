@@ -1,0 +1,25 @@
+sequenceDiagram
+    actor R as Provider (requester)
+    participant DSM as DataSharingManager
+    participant LOG as AccessLogger
+    participant G as Gatekeeper
+    participant CM as ConsentManager / Registry
+
+    R->>DSM: requestAccess(patient), signed transaction
+    DSM->>LOG: logAccess(patient, provider, GRANTED)
+    DSM-->>R: receipt with AccessGranted(patient, provider)
+    R->>G: POST /users/{patient}/files<br/>tx hash + signature over (patient, tx hash)
+    G->>G: 1. Receipt: succeeded, sent to DSM, has AccessGranted(patient, sender)
+    G->>G: 2. Signature recovers to the transaction's sender
+    G->>CM: 3. Still whitelisted? isConsentValid(patient, provider) now?
+    G->>G: 4. Mined within the last 5 minutes?
+    G->>G: 5. Transaction hash not used before?
+    G->>CM: 6. getConsent → scope
+    alt every check passes
+        G-->>R: 200: FRONT_ONLY → front · BACK_ONLY → back · BOTH → both
+        R->>CM: getUserRecord(patient) → frontHash, backHash
+        R->>R: SHA-256 of each file equals the on-chain hash?
+    else any check fails
+        G-->>R: 403 + reason (no_transaction, wrong_sender,<br/>access_not_granted, consent_not_valid, stale_transaction, …)
+    end
+    Note over R,G: No GRANTED log entry, no data: every release matches one log entry
