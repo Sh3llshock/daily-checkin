@@ -1,0 +1,272 @@
+[
+  {
+    "patients": 5,
+    "requesters": 1,
+    "transactions": 24,
+    "totalGas": 2143847,
+    "totalSeconds": 0.27,
+    "txPerSecond": 88,
+    "events": 10,
+    "eventReadMs": 7.8,
+    "operations": [
+      {
+        "name": "approveRequester",
+        "calls": 1,
+        "avgGas": 49680,
+        "avgMs": 6.03
+      },
+      {
+        "name": "registerUser",
+        "calls": 5,
+        "avgGas": 147552,
+        "avgMs": 12.91
+      },
+      {
+        "name": "grantConsent",
+        "calls": 5,
+        "avgGas": 96533,
+        "avgMs": 11.48
+      },
+      {
+        "name": "requestAccess (1st, granted)",
+        "calls": 5,
+        "avgGas": 87207,
+        "avgMs": 10.61
+      },
+      {
+        "name": "revokeConsent",
+        "calls": 3,
+        "avgGas": 28957,
+        "avgMs": 11.33
+      },
+      {
+        "name": "requestAccess (2nd, denied)",
+        "calls": 3,
+        "avgGas": 70207,
+        "avgMs": 10.57
+      },
+      {
+        "name": "requestAccess (2nd, granted)",
+        "calls": 2,
+        "avgGas": 70109,
+        "avgMs": 12.61
+      }
+    ]
+  },
+  {
+    "patients": 10,
+    "requesters": 2,
+    "transactions": 47,
+    "totalGas": 4224675,
+    "totalSeconds": 0.47,
+    "txPerSecond": 99.4,
+    "events": 20,
+    "eventReadMs": 3.8,
+    "operations": [
+      {
+        "name": "approveRequester",
+        "calls": 2,
+        "avgGas": 49692,
+        "avgMs": 8.24
+      },
+      {
+        "name": "registerUser",
+        "calls": 10,
+        "avgGas": 145845,
+        "avgMs": 9.73
+      },
+      {
+        "name": "grantConsent",
+        "calls": 10,
+        "avgGas": 94835,
+        "avgMs": 13.17
+      },
+      {
+        "name": "requestAccess (1st, granted)",
+        "calls": 10,
+        "avgGas": 87207,
+        "avgMs": 8.68
+      },
+      {
+        "name": "revokeConsent",
+        "calls": 5,
+        "avgGas": 28969,
+        "avgMs": 8.55
+      },
+      {
+        "name": "requestAccess (2nd, denied)",
+        "calls": 5,
+        "avgGas": 70206,
+        "avgMs": 9.75
+      },
+      {
+        "name": "requestAccess (2nd, granted)",
+        "calls": 5,
+        "avgGas": 70109,
+        "avgMs": 9.69
+      }
+    ]
+  },
+  {
+    "patients": 20,
+    "requesters": 4,
+    "transactions": 94,
+    "totalGas": 8415198,
+    "totalSeconds": 0.85,
+    "txPerSecond": 110.2,
+    "events": 40,
+    "eventReadMs": 5.1,
+    "operations": [
+      {
+        "name": "approveRequester",
+        "calls": 4,
+        "avgGas": 49689,
+        "avgMs": 4.93
+      },
+      {
+        "name": "registerUser",
+        "calls": 20,
+        "avgGas": 144996,
+        "avgMs": 8.64
+      },
+      {
+        "name": "grantConsent",
+        "calls": 20,
+        "avgGas": 93977,
+        "avgMs": 9.6
+      },
+      {
+        "name": "requestAccess (1st, granted)",
+        "calls": 20,
+        "avgGas": 87208,
+        "avgMs": 8.43
+      },
+      {
+        "name": "revokeConsent",
+        "calls": 10,
+        "avgGas": 28963,
+        "avgMs": 8.48
+      },
+      {
+        "name": "requestAccess (2nd, denied)",
+        "calls": 10,
+        "avgGas": 70211,
+        "avgMs": 10.8
+      },
+      {
+        "name": "requestAccess (2nd, granted)",
+        "calls": 10,
+        "avgGas": 70108,
+        "avgMs": 10.65
+      }
+    ]
+  },
+  {
+    "patients": 50,
+    "requesters": 10,
+    "transactions": 235,
+    "totalGas": 20987175,
+    "totalSeconds": 1.97,
+    "txPerSecond": 119.1,
+    "events": 100,
+    "eventReadMs": 16,
+    "operations": [
+      {
+        "name": "approveRequester",
+        "calls": 10,
+        "avgGas": 49692,
+        "avgMs": 4.98
+      },
+      {
+        "name": "registerUser",
+        "calls": 50,
+        "avgGas": 144486,
+        "avgMs": 9.14
+      },
+      {
+        "name": "grantConsent",
+        "calls": 50,
+        "avgGas": 93467,
+        "avgMs": 8.86
+      },
+      {
+        "name": "requestAccess (1st, granted)",
+        "calls": 50,
+        "avgGas": 87209,
+        "avgMs": 8.05
+      },
+      {
+        "name": "revokeConsent",
+        "calls": 25,
+        "avgGas": 28969,
+        "avgMs": 6.98
+      },
+      {
+        "name": "requestAccess (2nd, denied)",
+        "calls": 25,
+        "avgGas": 70210,
+        "avgMs": 8.21
+      },
+      {
+        "name": "requestAccess (2nd, granted)",
+        "calls": 25,
+        "avgGas": 70109,
+        "avgMs": 9.54
+      }
+    ]
+  },
+  {
+    "patients": 100,
+    "requesters": 20,
+    "transactions": 470,
+    "totalGas": 41939790,
+    "totalSeconds": 3.8,
+    "txPerSecond": 123.6,
+    "events": 200,
+    "eventReadMs": 27.3,
+    "operations": [
+      {
+        "name": "approveRequester",
+        "calls": 20,
+        "avgGas": 49690,
+        "avgMs": 4.3
+      },
+      {
+        "name": "registerUser",
+        "calls": 100,
+        "avgGas": 144316,
+        "avgMs": 7.91
+      },
+      {
+        "name": "grantConsent",
+        "calls": 100,
+        "avgGas": 93294,
+        "avgMs": 9.27
+      },
+      {
+        "name": "requestAccess (1st, granted)",
+        "calls": 100,
+        "avgGas": 87208,
+        "avgMs": 8.08
+      },
+      {
+        "name": "revokeConsent",
+        "calls": 50,
+        "avgGas": 28967,
+        "avgMs": 7.14
+      },
+      {
+        "name": "requestAccess (2nd, denied)",
+        "calls": 50,
+        "avgGas": 70210,
+        "avgMs": 8.39
+      },
+      {
+        "name": "requestAccess (2nd, granted)",
+        "calls": 50,
+        "avgGas": 70108,
+        "avgMs": 8.19
+      }
+    ]
+  }
+]

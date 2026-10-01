@@ -1,26 +1,25 @@
 {
   "name": "digital-identity-platform",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Decentralized digital identity and government-ID sharing platform (healthcare domain)",
+  "version": "1.0.0",
+  "description": "Decentralized identity and consent-based ID sharing for healthcare (BCS3210 group project)",
   "type": "module",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "test:gas": "hardhat test --gas-stats",
     "node": "hardhat node",
-    "deploy:local": "hardhat ignition deploy ignition/modules/DigitalIdentityPlatform.ts --network localhost"
+    "deploy:local": "hardhat ignition deploy ignition/modules/Platform.ts --network localhost --reset",
+    "demo": "hardhat run scripts/demo.ts",
+    "simulate": "hardhat run scripts/simulate.ts --network localhost",
+    "gas-report": "hardhat run scripts/gas-report.ts",
+    "frontend": "node scripts/export-frontend.mjs && node frontend/server.mjs"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.1.8",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
-    "@types/node": "^22.20.1",
-    "forge-std": "github:foundry-rs/forge-std#v1.16.2",
-    "hardhat": "^3.15.0",
-    "typescript": "~6.0.3",
-    "viem": "^2.56.3"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^5.6.1"
+    "@types/node": "^22.20.4",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.18.0",
+    "typescript": "~5.8",
+    "viem": "^2.57.1"
   }
 }

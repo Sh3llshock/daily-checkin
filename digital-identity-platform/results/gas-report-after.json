@@ -1,0 +1,107 @@
+[
+  {
+    "name": "deploy AccessToken",
+    "calls": 1,
+    "min": 721687,
+    "avg": 721687,
+    "max": 721687
+  },
+  {
+    "name": "deploy DigitalIdentity",
+    "calls": 1,
+    "min": 850665,
+    "avg": 850665,
+    "max": 850665
+  },
+  {
+    "name": "deploy ConsentManager",
+    "calls": 1,
+    "min": 774213,
+    "avg": 774213,
+    "max": 774213
+  },
+  {
+    "name": "deploy DataSharing",
+    "calls": 1,
+    "min": 774276,
+    "avg": 774276,
+    "max": 774276
+  },
+  {
+    "name": "setMinter",
+    "calls": 1,
+    "min": 47302,
+    "avg": 47302,
+    "max": 47302
+  },
+  {
+    "name": "approveRequester",
+    "calls": 2,
+    "min": 49680,
+    "avg": 49686,
+    "max": 49692
+  },
+  {
+    "name": "registerUser",
+    "calls": 10,
+    "min": 144211,
+    "avg": 145921,
+    "max": 161311
+  },
+  {
+    "name": "requestAccess (denied, first entry)",
+    "calls": 10,
+    "min": 87279,
+    "avg": 87290,
+    "max": 87291
+  },
+  {
+    "name": "grantConsent (first, with reward)",
+    "calls": 10,
+    "min": 93125,
+    "avg": 94835,
+    "max": 110225
+  },
+  {
+    "name": "requestAccess (granted)",
+    "calls": 30,
+    "min": 70097,
+    "avg": 70108,
+    "max": 70109
+  },
+  {
+    "name": "requestAccess (denied, not approved)",
+    "calls": 10,
+    "min": 63402,
+    "avg": 63413,
+    "max": 63414
+  },
+  {
+    "name": "revokeConsent",
+    "calls": 10,
+    "min": 28969,
+    "avg": 28969,
+    "max": 28969
+  },
+  {
+    "name": "requestAccess (denied, revoked)",
+    "calls": 10,
+    "min": 70199,
+    "avg": 70210,
+    "max": 70211
+  },
+  {
+    "name": "grantConsent (again, no reward)",
+    "calls": 10,
+    "min": 39283,
+    "avg": 39283,
+    "max": 39283
+  },
+  {
+    "name": "updateDocument",
+    "calls": 10,
+    "min": 39357,
+    "avg": 39364,
+    "max": 39369
+  }
+]

@@ -1,107 +1,130 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "./DigitalIdentityRegistry.sol";
-import "./AccessToken.sol";
+import "./interfaces/IDigitalIdentity.sol";
+import "./interfaces/IAccessToken.sol";
 
-/// @title ConsentManager
-/// @notice Users grant/revoke time-limited, scoped consent to whitelisted
-/// requesters. A user's first consent grant to each requester mints an ACT
-/// reward; the token is a pure incentive and is never checked when deciding
-/// data access.
-contract ConsentManager is Ownable {
-    enum Scope { FRONT_ONLY, BACK_ONLY, BOTH }
+/**
+ * @title ConsentManager
+ * @dev Patients give time limited consent to approved requesters and can
+ *      revoke it at any time. The first consent to a requester is rewarded
+ *      with ACT tokens.
+ */
+contract ConsentManager {
+    // Which part of the ID the requester is allowed to see
+    enum Scope { FrontOnly, BackOnly, Both }
 
+    // all fields fit in one storage slot (1 + 8 + 8 + 1 + 1 + 1 bytes)
     struct Consent {
         Scope scope;
-        uint256 grantedAt;
-        uint256 expiresAt;
+        uint64 grantedAt;
+        uint64 expiresAt;
         bool revoked;
         bool exists;
+        bool rewarded;   // patient already got tokens for this requester
     }
 
-    uint256 public constant MIN_DURATION_DAYS = 1;
-    uint256 public constant MAX_DURATION_DAYS = 365;
-    uint256 public rewardAmount = 10 * 1e18; // 10 ACT per consent grant
+    // State variables
+    address public owner;
+    IDigitalIdentity public immutable identity;
+    IAccessToken public immutable token;
 
-    DigitalIdentityRegistry public immutable registry;
-    AccessToken public immutable accessToken;
+    uint256 public constant MIN_DAYS = 1;
+    uint256 public constant MAX_DAYS = 365;
+    uint256 public rewardAmount = 10 * 10**18;
 
-    // user => requester => Consent
+    // patient => requester => consent
     mapping(address => mapping(address => Consent)) private consents;
 
-    event ConsentGranted(address indexed user, address indexed requester, Scope scope, uint256 expiresAt);
-    event ConsentRevoked(address indexed user, address indexed requester);
-    event RewardAmountUpdated(uint256 newAmount);
+    // Events
+    event ConsentGranted(address indexed patient, address indexed requester, Scope scope, uint256 expiresAt);
+    event ConsentRevoked(address indexed patient, address indexed requester);
+    event RewardAmountChanged(uint256 newAmount);
 
-    constructor(DigitalIdentityRegistry _registry, AccessToken _accessToken) Ownable(msg.sender) {
-        registry = _registry;
-        accessToken = _accessToken;
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
     }
 
-    /// @notice Admin-only tuning of the incentive rate. Never affects access logic.
-    function setRewardAmount(uint256 newAmount) external onlyOwner {
-        rewardAmount = newAmount;
-        emit RewardAmountUpdated(newAmount);
+    constructor(address _identity, address _token) {
+        require(_identity != address(0) && _token != address(0), "Invalid address");
+        owner = msg.sender;
+        identity = IDigitalIdentity(_identity);
+        token = IAccessToken(_token);
     }
 
-    /// @notice Grant time-limited, scoped consent to a whitelisted requester.
-    /// Only the identity owner may call this for their own record.
-    function setConsent(address requester, Scope scope, uint256 durationDays) external {
-        require(registry.isRegistered(msg.sender), "ConsentManager: user not registered");
-        require(registry.isApprovedRequester(requester), "ConsentManager: requester not whitelisted");
-        require(
-            durationDays >= MIN_DURATION_DAYS && durationDays <= MAX_DURATION_DAYS,
-            "ConsentManager: duration out of range"
-        );
+    /**
+     * @dev Give a requester access to (part of) your ID for some days.
+     *      Granting again to the same requester replaces the old consent.
+     * @param _requester approved healthcare provider
+     * @param _scope FrontOnly, BackOnly or Both
+     * @param _days duration, 1 to 365 days
+     */
+    function grantConsent(address _requester, Scope _scope, uint256 _days) external {
+        require(identity.isRegistered(msg.sender), "Not registered");
+        require(identity.isApprovedRequester(_requester), "Requester not approved");
+        require(_days >= MIN_DAYS && _days <= MAX_DAYS, "Duration must be 1-365 days");
 
-        // `exists` is never cleared (revoking only sets `revoked`), so this is
-        // true only the very first time this user consents to this requester.
-        bool firstGrant = !consents[msg.sender][requester].exists;
+        uint256 expiresAt = block.timestamp + (_days * 1 days);
 
-        uint256 expiresAt = block.timestamp + (durationDays * 1 days);
-        consents[msg.sender][requester] = Consent({
-            scope: scope,
-            grantedAt: block.timestamp,
-            expiresAt: expiresAt,
+        // reward only once per requester, otherwise you could grant and
+        // revoke in a loop to farm tokens
+        bool firstTime = !consents[msg.sender][_requester].rewarded;
+
+        consents[msg.sender][_requester] = Consent({
+            scope: _scope,
+            grantedAt: uint64(block.timestamp),
+            expiresAt: uint64(expiresAt),
             revoked: false,
-            exists: true
+            exists: true,
+            rewarded: true
         });
 
-        emit ConsentGranted(msg.sender, requester, scope, expiresAt);
+        emit ConsentGranted(msg.sender, _requester, _scope, expiresAt);
 
-        // Incentive only -- no tokens ever move during data access.
-        // Rewarded once per (user, requester) pair: re-granting or
-        // revoke-then-re-grant to the same requester must not mint again,
-        // otherwise a user could farm ACT by looping setConsent.
-        if (firstGrant) {
-            accessToken.mintReward(msg.sender, rewardAmount);
+        if (firstTime) {
+            token.mint(msg.sender, rewardAmount);
         }
     }
 
-    /// @notice Revoke an active consent immediately. Only the identity owner
-    /// may revoke their own consent -- no admin override.
-    function revokeConsent(address requester) external {
-        Consent storage c = consents[msg.sender][requester];
-        require(c.exists, "ConsentManager: no such consent");
-        require(!c.revoked, "ConsentManager: already revoked");
+    /**
+     * @dev Revoke consent. Works straight away.
+     */
+    function revokeConsent(address _requester) external {
+        Consent storage c = consents[msg.sender][_requester];
+        require(c.exists, "No consent found");
+        require(!c.revoked, "Already revoked");
+        require(block.timestamp < c.expiresAt, "Consent already expired");
+
         c.revoked = true;
-        emit ConsentRevoked(msg.sender, requester);
+        emit ConsentRevoked(msg.sender, _requester);
     }
 
-    /// @notice True only if a non-revoked, non-expired consent record exists.
-    function isConsentValid(address user, address requester) public view returns (bool) {
-        Consent storage c = consents[user][requester];
-        return c.exists && !c.revoked && block.timestamp <= c.expiresAt;
+    /**
+     * @dev A consent is valid if it exists, is not revoked and not expired
+     */
+    function isConsentValid(address _patient, address _requester) public view returns (bool) {
+        Consent memory c = consents[_patient][_requester];
+        return c.exists && !c.revoked && block.timestamp < c.expiresAt;
     }
 
-    function getConsent(address user, address requester)
-        external
-        view
-        returns (Scope scope, uint256 grantedAt, uint256 expiresAt, bool revoked, bool exists)
-    {
-        Consent storage c = consents[user][requester];
+    function getConsent(address _patient, address _requester) external view returns (
+        Scope scope,
+        uint256 grantedAt,
+        uint256 expiresAt,
+        bool revoked,
+        bool exists
+    ) {
+        Consent memory c = consents[_patient][_requester];
         return (c.scope, c.grantedAt, c.expiresAt, c.revoked, c.exists);
+    }
+
+    function rewarded(address _patient, address _requester) external view returns (bool) {
+        return consents[_patient][_requester].rewarded;
+    }
+
+    function setRewardAmount(uint256 _amount) external onlyOwner {
+        rewardAmount = _amount;
+        emit RewardAmountChanged(_amount);
     }
 }

@@ -1,0 +1,51 @@
+
+
+
+================ DIGITAL IDENTITY PLATFORM DEMO ================
+
+Participants:
+  Admin   : 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+  Patient : 0x70997970c51812dc3a010c7d01b50e0d17dc79c8
+  Doctor  : 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc
+  Stranger: 0x90f79bf6eb2c4f870365e785982e1f101e93b906
+
+Step 1: Deploying contracts...
+  AccessToken    : 0x5fbdb2315678afecb367f032d93f642f64180aa3
+  DigitalIdentity: 0xe7f1725e7734ce288f8367e1bb143e90bb3f0512
+  ConsentManager : 0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0
+  DataSharing    : 0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9
+
+Step 2: Admin approves the doctor as requester...
+  Doctor approved: true
+
+Step 3: Patient registers...
+  Registered, front hash on-chain: 0x9175bc88d32c36033ff28efa7a5f29fd98347e5d41c26f3a0711ee262bc4264f
+
+Step 4: Doctor requests access without consent...
+  DENIED (reason NoConsent), gas used: 141712
+
+Step 5: Patient grants consent (Both, 30 days)...
+  Consent valid: true
+  Patient ACT balance: 10
+
+Step 6: Doctor requests access with consent...
+  GRANTED (scope Both), gas used: 107430
+
+Step 7: Stranger (not approved) requests access...
+  DENIED (reason NotApproved), gas used: 92551
+
+Step 8: Patient revokes consent...
+  DENIED (reason Revoked), gas used: 107532
+
+Step 9: Patient grants 7 days again, then 8 days pass...
+  ACT balance (no second reward): 10
+  DENIED (reason Expired), gas used: 107543
+
+Step 10: Audit log of the patient:
+  #0 2026-09-30T12:59 DENIED  requester=0x3C44CdDd... reason=NoConsent
+  #1 2026-09-30T12:59 GRANTED requester=0x3C44CdDd... scope=Both
+  #2 2026-09-30T12:59 DENIED  requester=0x90F79bf6... reason=NotApproved
+  #3 2026-09-30T12:59 DENIED  requester=0x3C44CdDd... reason=Revoked
+  #4 2026-10-08T12:59 DENIED  requester=0x3C44CdDd... reason=Expired
+  Total requests on platform: 5
+

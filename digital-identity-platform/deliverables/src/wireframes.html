@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+body { font-family: Arial, sans-serif; margin: 10px; background: white; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.screen { border: 2px solid #444; height: 300px; display: flex; flex-direction: column; }
+.title { font-size: 13px; font-weight: bold; margin: 0 0 4px 0; }
+.bar { background: #bbb; height: 26px; display: flex; justify-content: space-between; align-items: center; padding: 0 6px; font-size: 11px; }
+.tabs { background: #e2e2e2; height: 20px; font-size: 10px; padding: 3px 6px; box-sizing: border-box; }
+.tabs b { text-decoration: underline; }
+.body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; }
+.box { border: 1px dashed #666; font-size: 10px; padding: 4px; color: #333; }
+.box span { display: block; background: #eee; height: 9px; margin: 4px 0; }
+.box i { display: block; border: 1px solid #999; height: 12px; margin: 3px 0; }
+.btn { display: inline-block; background: #888; color: white; padding: 1px 6px; margin-top: 3px; }
+.full { grid-column: span 2; }
+</style></head><body>
+<div class="grid">
+ <div><p class="title">1. Patient: register (not registered yet)</p><div class="screen">
+  <div class="bar">ID Share <span>[Account v] address | ACT balance</span></div>
+  <div class="tabs"><b>Patient</b> | Requester | Admin | Audit log</div>
+  <div class="body">
+   <div class="box">Register identity<br>email<i></i><br>storage ref<i></i><br>front photo [choose]<i></i><br>back photo [choose]<i></i><div class="btn">Hash and register</div></div>
+   <div class="box">Give consent<br>requester v<i></i><br>scope v<i></i><br>days<i></i><div class="btn">Grant</div></div>
+   <div class="box">My identity<span></span><span></span></div>
+   <div class="box">My consents<span></span><span></span></div>
+  </div></div></div>
+ <div><p class="title">2. Patient: identity and consents</p><div class="screen">
+  <div class="bar">ID Share <span>[Account v] address | ACT balance</span></div>
+  <div class="tabs"><b>Patient</b> | Requester | Admin | Audit log</div>
+  <div class="body">
+   <div class="box">My identity<br>email hash / front hash / back hash / ref / date<span></span><span></span><span></span><span></span></div>
+   <div class="box">Give consent<br>requester v<i></i><br>scope v<i></i><br>days (1-365)<i></i><div class="btn">Grant</div></div>
+   <div class="box full">My consents: requester | scope | valid until | state | [Revoke]<span></span><span></span></div>
+  </div></div></div>
+ <div><p class="title">3. Requester: request access</p><div class="screen">
+  <div class="bar">ID Share <span>[Account v] address | ACT balance</span></div>
+  <div class="tabs">Patient | <b>Requester</b> | Admin | Audit log</div>
+  <div class="body">
+   <div class="box">Request access<br>patient v<i></i><div class="btn">Request</div><br>result: GRANTED / DENIED + reason, tx hash for the vault</div>
+   <div class="box">My requests: block | patient | result | details<span></span><span></span><span></span></div>
+  </div></div></div>
+ <div><p class="title">4. Admin and audit log</p><div class="screen">
+  <div class="bar">ID Share <span>[Account v] address | ACT balance</span></div>
+  <div class="tabs">Patient | Requester | <b>Admin</b> | <b>Audit log</b></div>
+  <div class="body">
+   <div class="box">Approve requester<br>address<i></i><div class="btn">Approve</div><br><br>Pause / Unpause, reward amount</div>
+   <div class="box">Approved requesters [Remove]<span></span><span></span></div>
+   <div class="box full">Audit log: patient v | # | time | requester | GRANTED/DENIED | scope or reason<span></span><span></span></div>
+  </div></div></div>
+</div>
+</body></html>

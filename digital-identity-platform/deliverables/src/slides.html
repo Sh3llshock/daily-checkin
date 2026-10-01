@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>ID Share presentation</title>
+<style>
+  @page { size: 13.333in 7.5in; margin: 0; }
+  body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #1f2d3d; }
+  .slide { width: 13.333in; height: 7.5in; box-sizing: border-box; padding: 0.55in 0.8in; page-break-after: always; position: relative; overflow: hidden; }
+  .slide h1 { font-size: 34pt; margin: 0 0 18px 0; color: #1f4e79; }
+  .slide h2 { font-size: 26pt; margin: 0 0 16px 0; color: #1f4e79; border-bottom: 3px solid #1f4e79; padding-bottom: 6px; }
+  .slide:last-child { page-break-after: auto; }
+  .mermaid svg { width: 100% !important; max-width: 100% !important; height: 5in !important; }
+  .slide li { font-size: 20pt; margin-bottom: 9px; line-height: 1.3; }
+  .slide p { font-size: 20pt; line-height: 1.35; }
+  .num { position: absolute; bottom: 0.3in; right: 0.5in; font-size: 11pt; color: #888; }
+  .title { background: #1f4e79; color: white; display: flex; flex-direction: column; justify-content: center; }
+  .title h1 { color: white; font-size: 42pt; }
+  .title p { font-size: 18pt; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+  table { border-collapse: collapse; font-size: 16pt; width: 100%; }
+  th, td { border: 1px solid #999; padding: 5px 9px; text-align: left; }
+  th { background: #dfe6ee; }
+  .big { font-size: 40pt; font-weight: bold; color: #1a7f37; }
+  code { font-size: 14pt; background: #f1f1f1; padding: 1px 4px; }
+  pre { font-size: 13pt; background: #f4f4f4; padding: 10px; line-height: 1.35; }
+  .mermaid { text-align: center; }
+  img { max-width: 100%; }
+  .note { font-size: 13pt; color: #555; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: "neutral" });</script>
+</head><body>
+
+<div class="slide title">
+  <h1>ID Share</h1>
+  <p>Consent-based sharing of government ID documents in healthcare on Ethereum</p>
+  <p style="font-size:15pt">BCS3210 Blockchains, group project<br>[Names of the group members]</p>
+</div>
+
+<div class="slide">
+  <h2>The problem</h2>
+  <ul>
+    <li>Every clinic, lab and insurer keeps its own scan of your ID</li>
+    <li>You don't know who has a copy or who looked at it</li>
+    <li>You can't take a copy back</li>
+    <li>No audit trail you can check yourself</li>
+    <li>Every provider is a breach target: Change Healthcare 2024, <b>192.7 million</b> people affected</li>
+    <li>Patients get nothing back for sharing</li>
+  </ul>
+  <div class="num">2</div>
+</div>
+
+<div class="slide">
+  <h2>Our idea</h2>
+  <div class="cols">
+    <ul>
+      <li>ID photos stay <b>with the patient</b> (off-chain vault)</li>
+      <li>On-chain: only <b>hashes</b>, consents and the access log</li>
+      <li>Consent: <b>1 to 365 days</b>, front / back / both, revocable any time</li>
+      <li><b>Every</b> access attempt logged, also the failed ones</li>
+      <li>10 ACT reward token for the first consent to a provider</li>
+    </ul>
+    <table>
+      <tr><th>Role</th><th>Can</th></tr>
+      <tr><td>Patient</td><td>register, grant / revoke consent, read log</td></tr>
+      <tr><td>Requester</td><td>request access, get allowed photos</td></tr>
+      <tr><td>Admin</td><td>approve requesters, pause</td></tr>
+    </table>
+  </div>
+  <div class="num">3</div>
+</div>
+
+<div class="slide">
+  <h2>Architecture</h2>
+  <div class="cols" style="grid-template-columns: 1.3fr 1fr">
+    <pre class="mermaid">
+flowchart TB
+    P([Patient]) -->|register| DI[DigitalIdentity]
+    A([Admin]) -->|approve| DI
+    P -->|grant / revoke| CM[ConsentManager]
+    CM -->|mint| T[AccessToken]
+    R([Requester]) -->|requestAccess| DS[DataSharing + log]
+    DS --> CM
+    DS --> DI
+    R -->|tx + signature| V[Vault off-chain]
+    V -->|checks event| DS
+    V -->|photos| R
+    </pre>
+    <ul>
+      <li>4 contracts, one job each, talk through interfaces (like Lab 4)</li>
+      <li>Only ConsentManager can mint tokens</li>
+      <li>Python vault hands out the files</li>
+      <li>Hardhat 3, Solidity 0.8.28, viem, web3.py</li>
+    </ul>
+  </div>
+  <div class="num">4</div>
+</div>
+
+<div class="slide">
+  <h2>Design decision 1: failed requests must not revert</h2>
+  <div class="cols">
+    <div>
+      <p>A <code>revert</code> also rolls back the log entry, so a denied attempt would leave no trace.</p>
+      <p><code>requestAccess</code> therefore always writes the log and emits an event, and returns <code>true</code> or <code>false</code>.</p>
+    </div>
+<pre>if (!approved)  reason = NotApproved;
+else if (!exists)  reason = NoConsent;
+else if (revoked)  reason = Revoked;
+else if (now >= expiresAt) reason = Expired;
+
+granted = (reason == None);
+accessLogs[patient].push(...);
+emit granted ? AccessGranted
+             : AccessDenied(reason);</pre>
+  </div>
+  <div class="num">5</div>
+</div>
+
+<div class="slide">
+  <h2>Design decision 2: the chain is public</h2>
+  <div class="cols">
+    <ul>
+      <li>Our first version returned the file link from the contract, but anyone can read contract storage</li>
+      <li>So the <b>vault</b> enforces access, based on on-chain proof:</li>
+    </ul>
+    <ol>
+      <li>Requester calls <code>requestAccess</code></li>
+      <li>Sends tx hash + signature to the vault</li>
+      <li>Vault checks: AccessGranted event, signer, age, not reused, consent still valid</li>
+      <li>Vault sends only the allowed photos</li>
+      <li>Requester checks SHA-256 against the chain</li>
+    </ol>
+  </div>
+  <p class="note">Every download has a matching entry in the on-chain audit log.</p>
+  <div class="num">6</div>
+</div>
+
+<div class="slide">
+  <h2>Testing</h2>
+  <div class="cols">
+    <div>
+      <p class="big">64 / 64 passing</p>
+      <p>Solidity tests with forge-std, incl. a fuzz test (256 runs)</p>
+      <p class="note">Only generated addresses and fake hashes, no personal data.</p>
+    </div>
+    <table>
+      <tr><th>File</th><th>Tests</th></tr>
+      <tr><td>AccessToken.t.sol</td><td>10</td></tr>
+      <tr><td>DigitalIdentity.t.sol</td><td>16</td></tr>
+      <tr><td>ConsentManager.t.sol</td><td>21</td></tr>
+      <tr><td>DataSharing.t.sol</td><td>13</td></tr>
+      <tr><td>Integration.t.sol</td><td>4</td></tr>
+    </table>
+  </div>
+  <ul>
+    <li>Boundaries (0 / 1 / 365 / 366 days), exact expiry, reward only once, denied = logged not reverted</li>
+  </ul>
+  <div class="num">7</div>
+</div>
+
+<div class="slide">
+  <h2>Gas optimisation</h2>
+  <div class="cols">
+    <ul>
+      <li>Timestamps as <code>uint64</code>, so a consent and a log entry each fit in <b>one</b> storage slot</li>
+      <li>Reward flag inside the packed consent</li>
+      <li><code>immutable</code> contract references</li>
+      <li>Removed a redundant counter</li>
+    </ul>
+    <table>
+      <tr><th>Operation</th><th>Before</th><th>After</th></tr>
+      <tr><td>requestAccess (granted)</td><td>107,429</td><td><b>70,108</b> (-35%)</td></tr>
+      <tr><td>grantConsent (first)</td><td>187,290</td><td><b>94,835</b> (-49%)</td></tr>
+      <tr><td>registerUser</td><td>167,975</td><td><b>145,921</b> (-13%)</td></tr>
+      <tr><td>Deployment (all)</td><td>3.14 M</td><td>3.17 M (+1%)</td></tr>
+    </table>
+  </div>
+  <div class="num">8</div>
+</div>
+
+<div class="slide">
+  <h2>Simulation: 5 to 100 patients</h2>
+  <div class="cols" style="grid-template-columns: 1.4fr 1fr">
+    <img src="scaling.png">
+    <ul>
+      <li>Gas per operation constant: no loops over users</li>
+      <li>~420k gas per patient lifecycle</li>
+      <li>100 patients: 470 tx in 3.8 s</li>
+      <li>8 to 10 ms confirmation on the local node</li>
+      <li>200 audit events read in 27 ms</li>
+    </ul>
+  </div>
+  <div class="num">9</div>
+</div>
+
+<div class="slide">
+  <h2>Front-end (viem)</h2>
+  <img src="img/ui-patient.png" style="height: 5.2in; border: 1px solid #ccc">
+  <div class="num">10</div>
+</div>
+
+<div class="slide">
+  <h2>Limitations and next steps</h2>
+  <ul>
+    <li>Local chain: on mainnet ~12 s per block and real fees, so move to a Layer-2 rollup</li>
+    <li>Access pattern (who asked whom, when) is public: zero-knowledge proofs could hide it</li>
+    <li>Admin is one trusted party: use a multi-sig</li>
+    <li>A requester can keep copies; the chain proves access but cannot force deletion</li>
+    <li>Encrypt files for the requester, use MetaMask instead of test keys</li>
+  </ul>
+  <div class="num">11</div>
+</div>
+
+<div class="slide title" style="page-break-after: auto">
+  <h1>Thank you</h1>
+  <p>Questions?</p>
+  <p style="font-size:14pt">Demo: <code style="background:none;color:white">npx hardhat node</code>, <code style="background:none;color:white">npm run deploy:local</code>, <code style="background:none;color:white">npm run frontend</code></p>
+</div>
+
+</body></html>

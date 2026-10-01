@@ -1,71 +1,85 @@
-# Decentralized Digital Identity & Government-ID Sharing Platform
+# ID Share: Decentralized Digital Identity Platform
 
-**Domain:** Healthcare — patient identity verification via government-issued ID (front/back)
+BCS3210 Blockchains group project. Patients keep the photos of their government ID off-chain and only put hashes on the blockchain. Healthcare providers (requesters) can only get the photos with a valid, time-limited consent. Every access attempt is logged on-chain, and patients get ACT tokens for giving consent.
 
-This folder is a self-contained project workspace and does **not** depend on or modify
-anything else in this repository. It currently covers **Step 1 (Research & Planning)**
-and **Step 2 (Platform/System Design)** of the project brief. Implementation (Solidity
-contracts, tests, deployment) will follow in later steps.
+## Requirements
 
-## Concept in one line
+- Node.js 22 or newer (Hardhat 3 does not run on older versions)
+- Python 3.10 or newer (off-chain part and plots)
+- Google Chrome or any modern browser (front-end)
 
-A patient uploads the front and back photos of their government ID to an off-chain
-storage location (e.g. `https://storage.example.com/docs/george`). The platform never
-puts the images or personal data on-chain — instead it stores the **link** plus a
-**cryptographic hash of each image** on-chain, e.g.:
+## Setup
 
 ```
-link:  storage.example.com/george
-front: 3f9a1c2e...   (SHA-256 of front-of-ID image)
-back:  d2b7e4a1...   (SHA-256 of back-of-ID image)
-```
-
-A healthcare provider (doctor, hospital admissions desk, lab, insurer) who needs to
-verify "is this really George's ID, and did George approve me seeing it?" can only
-retrieve the link if George has granted that provider **time-limited, revocable
-consent**. Every access attempt — successful or denied — is written to an immutable
-on-chain audit log, and George earns platform **Access Tokens (ACT)** the first time
-he grants consent to each provider, as an incentive for participating (tokens grant *access*, never
-ownership — the ID images always remain George's).
-
-## Contents
-
-| Document | Covers |
-|---|---|
-| [`docs/step1-deliverable.md`](docs/step1-deliverable.md) | Problem statement, prior-art research, user roles, functional requirements, high-level interaction overview |
-| [`docs/step2-deliverable.md`](docs/step2-deliverable.md) | Data model, consent model, audit log design, smart-contract design, architecture diagram |
-| [`docs/step3-deliverable.md`](docs/step3-deliverable.md) | Solidity implementation of the smart contracts + Hardhat project/deploy script |
-
-## Code
-
-| Path | Contents |
-|---|---|
-| `contracts/` | The 5 Solidity contracts: `DigitalIdentityRegistry`, `ConsentManager`, `AccessLogger`, `DataSharingManager`, `AccessToken` |
-| `ignition/modules/DigitalIdentityPlatform.ts` | Hardhat Ignition module: deploys and wires all 5 contracts together |
-| `hardhat.config.ts`, `package.json`, `tsconfig.json` | Hardhat 3 project configuration (viem toolbox, same setup as the course labs) |
-
-Run locally with:
-
-```bash
-cd digital-identity-platform
 npm install
 npx hardhat compile
-npx hardhat test                  # Solidity (.t.sol) tests
-npx hardhat test --gas-stats      # same, plus per-function gas usage
-
-# Deploy to a persistent local chain:
-npx hardhat node                  # terminal 1
-npm run deploy:local              # terminal 2
 ```
 
-## Worked example used throughout the docs
+Python part:
 
-| Field | Example value |
+```
+python -m venv .venv
+.venv\Scripts\activate           (Windows)
+source .venv/bin/activate        (Linux / macOS)
+pip install -r offchain/requirements.txt
+```
+
+## Project structure
+
+| Path | Content |
 |---|---|
-| User | George Papadopoulos |
-| Wallet address | `0xGeorge...` |
-| Off-chain document link | `link.com/george` |
-| Front-of-ID hash (SHA-256) | `3huifh4gyvbgugy3g3gyg3...` |
-| Back-of-ID hash (SHA-256) | `d2hufhyfgu3gbfu3guy3guygyuf...` |
-| Requester | Dr. Elena Kostas, Athens General Hospital |
-| Consent duration | 30 days |
+| `contracts/` | `DigitalIdentity`, `ConsentManager`, `DataSharing`, `AccessToken` and small interfaces |
+| `test/` | Solidity unit tests (`*.t.sol`) and integration tests |
+| `ignition/modules/Platform.ts` | Deploys and connects the four contracts |
+| `scripts/demo.ts` | Walk through the whole flow (in-process network) |
+| `scripts/gas-report.ts` | Deployment cost and gas per function |
+| `scripts/simulate.ts` | Simulation with 5 to 100 patients (time and gas) |
+| `scripts/plot_results.py` | Plot of the simulation results |
+| `offchain/` | Python: hashing, patient vault, end-to-end demo |
+| `frontend/` | Web front-end with viem |
+| `results/` | Saved measurements |
+
+## Tests and gas
+
+```
+npx hardhat test                    # 64 Solidity tests
+npx hardhat test --gas-stats        # same, with gas table
+npm run gas-report                  # scenario gas report -> results/gas-report-latest.json
+```
+
+## Demo without a node
+
+```
+npm run demo
+```
+
+## Local node, deployment and everything that needs it
+
+Terminal 1 (keep it running):
+
+```
+npx hardhat node
+```
+
+Terminal 2:
+
+```
+npm run deploy:local                # Ignition, addresses in ignition/deployments/chain-31337/
+npm run simulate                    # simulation -> results/simulation-localhost.json
+python offchain/make_sample_data.py # fake patient in offchain/vault/
+python offchain/demo.py             # vault + hash check end-to-end
+npm run frontend                    # open http://localhost:5173
+```
+
+If you restart the node, run `npm run deploy:local` again (it uses `--reset`) and restart the front-end.
+
+The front-end uses the public Hardhat test accounts, which only work on the local chain. No real personal data is used anywhere, the sample patient and images are generated.
+
+## Deliverables
+
+The step deliverables, the final report and the presentation are in `deliverables/`. To rebuild the PDFs (needs Google Chrome and `pip install markdown pymupdf`):
+
+```
+python deliverables/build_pdf.py                 # step1 ... step7
+python deliverables/build_pdf.py report slides   # report.pdf, presentation.pdf
+```

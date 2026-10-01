@@ -1,0 +1,302 @@
+{
+  "contracts": {
+    "contracts/AccessToken.sol:AccessToken": {
+      "sourceName": "contracts/AccessToken.sol",
+      "contractName": "AccessToken",
+      "proxyChain": [],
+      "deployment": {
+        "min": 721687,
+        "max": 721687,
+        "avg": 721687,
+        "median": 721687,
+        "count": 4,
+        "runtimeSize": 2645
+      },
+      "functions": {
+        "allowance": {
+          "min": 2755,
+          "max": 2755,
+          "avg": 2755,
+          "median": 2755,
+          "count": 2
+        },
+        "approve": {
+          "min": 46193,
+          "max": 46193,
+          "avg": 46193,
+          "median": 46193,
+          "count": 2
+        },
+        "balanceOf": {
+          "min": 2561,
+          "max": 2561,
+          "avg": 2561,
+          "median": 2561,
+          "count": 14
+        },
+        "decimals": {
+          "min": 2423,
+          "max": 2423,
+          "avg": 2423,
+          "median": 2423,
+          "count": 1
+        },
+        "mint": {
+          "min": 70478,
+          "max": 70478,
+          "avg": 70478,
+          "median": 70478,
+          "count": 4
+        },
+        "minter": {
+          "min": 2359,
+          "max": 2359,
+          "avg": 2359,
+          "median": 2359,
+          "count": 1
+        },
+        "name": {
+          "min": 3077,
+          "max": 3077,
+          "avg": 3077,
+          "median": 3077,
+          "count": 1
+        },
+        "owner": {
+          "min": 2403,
+          "max": 2403,
+          "avg": 2403,
+          "median": 2403,
+          "count": 1
+        },
+        "setMinter": {
+          "min": 30202,
+          "max": 47302,
+          "avg": 43882,
+          "median": 47302,
+          "count": 5
+        },
+        "symbol": {
+          "min": 3099,
+          "max": 3099,
+          "avg": 3099,
+          "median": 3099,
+          "count": 1
+        },
+        "totalSupply": {
+          "min": 2361,
+          "max": 2361,
+          "avg": 2361,
+          "median": 2361,
+          "count": 4
+        },
+        "transfer": {
+          "min": 51606,
+          "max": 51606,
+          "avg": 51606,
+          "median": 51606,
+          "count": 1
+        },
+        "transferFrom": {
+          "min": 57726,
+          "max": 57726,
+          "avg": 57726,
+          "median": 57726,
+          "count": 1
+        }
+      }
+    },
+    "contracts/ConsentManager.sol:ConsentManager": {
+      "sourceName": "contracts/ConsentManager.sol",
+      "contractName": "ConsentManager",
+      "proxyChain": [],
+      "deployment": {
+        "min": 746083,
+        "max": 746083,
+        "avg": 746083,
+        "median": 746083,
+        "count": 3,
+        "runtimeSize": 2770
+      },
+      "functions": {
+        "getConsent": {
+          "min": 9633,
+          "max": 9633,
+          "avg": 9633,
+          "median": 9633,
+          "count": 24
+        },
+        "grantConsent": {
+          "min": 47629,
+          "max": 202680,
+          "avg": 179031,
+          "median": 202680,
+          "count": 31
+        },
+        "isConsentValid": {
+          "min": 9357,
+          "max": 9393,
+          "avg": 9387,
+          "median": 9393,
+          "count": 9
+        },
+        "revokeConsent": {
+          "min": 30938,
+          "max": 30938,
+          "avg": 30938,
+          "median": 30938,
+          "count": 6
+        },
+        "rewarded": {
+          "min": 2779,
+          "max": 2779,
+          "avg": 2779,
+          "median": 2779,
+          "count": 1
+        },
+        "setRewardAmount": {
+          "min": 29712,
+          "max": 29712,
+          "avg": 29712,
+          "median": 29712,
+          "count": 1
+        }
+      }
+    },
+    "contracts/DataSharing.sol:DataSharing": {
+      "sourceName": "contracts/DataSharing.sol",
+      "contractName": "DataSharing",
+      "proxyChain": [],
+      "deployment": {
+        "min": 793839,
+        "max": 793839,
+        "avg": 793839,
+        "median": 793839,
+        "count": 2,
+        "runtimeSize": 3093
+      },
+      "functions": {
+        "getLog": {
+          "min": 8049,
+          "max": 8049,
+          "avg": 8049,
+          "median": 8049,
+          "count": 7
+        },
+        "getLogCount": {
+          "min": 2557,
+          "max": 2557,
+          "avg": 2557,
+          "median": 2557,
+          "count": 4
+        },
+        "getLogs": {
+          "min": 18308,
+          "max": 28572,
+          "avg": 23440,
+          "median": 23440,
+          "count": 2
+        },
+        "pause": {
+          "min": 27472,
+          "max": 27472,
+          "avg": 27472,
+          "median": 27472,
+          "count": 1
+        },
+        "requestAccess": {
+          "min": 92551,
+          "max": 141743,
+          "avg": 126443,
+          "median": 126751,
+          "count": 23
+        },
+        "totalRequests": {
+          "min": 2338,
+          "max": 2338,
+          "avg": 2338,
+          "median": 2338,
+          "count": 1
+        },
+        "unpause": {
+          "min": 27494,
+          "max": 27494,
+          "avg": 27494,
+          "median": 27494,
+          "count": 1
+        }
+      }
+    },
+    "contracts/DigitalIdentity.sol:DigitalIdentity": {
+      "sourceName": "contracts/DigitalIdentity.sol",
+      "contractName": "DigitalIdentity",
+      "proxyChain": [],
+      "deployment": {
+        "min": 831812,
+        "max": 831812,
+        "avg": 831812,
+        "median": 831812,
+        "count": 4,
+        "runtimeSize": 3498
+      },
+      "functions": {
+        "approveRequester": {
+          "min": 49675,
+          "max": 49675,
+          "avg": 49675,
+          "median": 49675,
+          "count": 12
+        },
+        "getUser": {
+          "min": 14503,
+          "max": 14503,
+          "avg": 14503,
+          "median": 14503,
+          "count": 3
+        },
+        "isApprovedRequester": {
+          "min": 2493,
+          "max": 2493,
+          "avg": 2493,
+          "median": 2493,
+          "count": 59
+        },
+        "isRegistered": {
+          "min": 2583,
+          "max": 2583,
+          "avg": 2583,
+          "median": 2583,
+          "count": 60
+        },
+        "registerUser": {
+          "min": 166205,
+          "max": 183329,
+          "avg": 181902,
+          "median": 183329,
+          "count": 12
+        },
+        "removeRequester": {
+          "min": 25514,
+          "max": 25514,
+          "avg": 25514,
+          "median": 25514,
+          "count": 3
+        },
+        "updateDocument": {
+          "min": 39316,
+          "max": 42176,
+          "avg": 40746,
+          "median": 40746,
+          "count": 2
+        },
+        "userCount": {
+          "min": 2284,
+          "max": 2284,
+          "avg": 2284,
+          "median": 2284,
+          "count": 1
+        }
+      }
+    }
+  }
+}

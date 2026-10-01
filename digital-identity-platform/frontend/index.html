@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ID Share - Digital Identity Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>ID Share</h1>
+    <div class="account">
+      <label for="accountSelect">Account</label>
+      <select id="accountSelect"></select>
+      <span id="accountInfo"></span>
+    </div>
+  </header>
+
+  <nav>
+    <button data-tab="patient" class="active">Patient</button>
+    <button data-tab="requester">Requester</button>
+    <button data-tab="admin">Admin</button>
+    <button data-tab="audit">Audit log</button>
+  </nav>
+
+  <main>
+    <p id="status" class="status"></p>
+
+    <!-- Patient -->
+    <section id="tab-patient" class="tab">
+      <div class="card" id="registerCard">
+        <h2>Register your identity</h2>
+        <p class="hint">The photos stay on your computer. Only their SHA-256 hashes go on-chain.</p>
+        <label>Email <input id="regEmail" type="email" placeholder="patient@example.test"></label>
+        <label>Storage reference <input id="regRef" placeholder="vault://patient1"></label>
+        <label>Front of ID <input id="regFront" type="file" accept="image/*"></label>
+        <label>Back of ID <input id="regBack" type="file" accept="image/*"></label>
+        <button id="registerBtn">Hash and register</button>
+      </div>
+
+      <div class="card" id="identityCard">
+        <h2>My identity</h2>
+        <p id="saltBox" class="hint"></p>
+        <table id="identityTable"></table>
+      </div>
+
+      <div class="card">
+        <h2>Give consent</h2>
+        <label>Requester <select id="grantRequester"></select></label>
+        <label>What can they see
+          <select id="grantScope">
+            <option value="2">Front and back</option>
+            <option value="0">Front only</option>
+            <option value="1">Back only</option>
+          </select>
+        </label>
+        <label>Days (1-365) <input id="grantDays" type="number" min="1" max="365" value="30"></label>
+        <button id="grantBtn">Grant consent</button>
+      </div>
+
+      <div class="card">
+        <h2>My consents</h2>
+        <table id="consentTable"></table>
+      </div>
+    </section>
+
+    <!-- Requester -->
+    <section id="tab-requester" class="tab hidden">
+      <div class="card">
+        <h2>Request access</h2>
+        <p class="hint">Every request is written to the patient's audit log, also when it is denied.</p>
+        <label>Patient <select id="requestPatient"></select></label>
+        <button id="requestBtn">Request access</button>
+        <p id="requestResult"></p>
+      </div>
+      <div class="card">
+        <h2>My requests</h2>
+        <table id="myRequestsTable"></table>
+      </div>
+    </section>
+
+    <!-- Admin -->
+    <section id="tab-admin" class="tab hidden">
+      <div class="card">
+        <h2>Approve requester</h2>
+        <label>Address <input id="approveAddress" placeholder="0x..."></label>
+        <button id="approveBtn">Approve</button>
+      </div>
+      <div class="card">
+        <h2>Approved requesters</h2>
+        <table id="requesterTable"></table>
+      </div>
+      <div class="card">
+        <h2>Platform</h2>
+        <p>Data sharing: <b id="pausedState"></b></p>
+        <button id="pauseBtn">Pause</button>
+        <button id="unpauseBtn">Unpause</button>
+        <p>Reward per first consent: <b id="rewardAmount"></b> ACT</p>
+      </div>
+    </section>
+
+    <!-- Audit log -->
+    <section id="tab-audit" class="tab hidden">
+      <div class="card">
+        <h2>Audit log</h2>
+        <label>Patient <select id="auditPatient"></select></label>
+        <table id="auditTable"></table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

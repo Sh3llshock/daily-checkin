@@ -1,0 +1,166 @@
+No contracts to compile
+
+Running Solidity tests
+
+  test/Integration.t.sol:IntegrationTest
+    ✔ test_RemovedRequesterLosesAccess()
+    ✔ test_FullWorkflow()
+    ✔ test_DocumentUpdateKeepsConsent()
+    ✔ test_ConsentIsPerPatientAndPerRequester()
+
+  test/AccessToken.t.sol:AccessTokenTest
+    ✔ test_Transfer()
+    ✔ test_RevertsWhenNonOwnerSetsMinter()
+    ✔ test_RevertsWhenNonMinterMints()
+    ✔ test_RevertsTransferWithoutBalance()
+    ✔ test_RevertsTransferFromOverAllowance()
+    ✔ test_RevertsOnZeroMinter()
+    ✔ test_OwnerSetsMinter()
+    ✔ test_MinterCanMint()
+    ✔ test_Metadata()
+    ✔ test_ApproveAndTransferFrom()
+
+  test/DigitalIdentity.t.sol:DigitalIdentityTest
+    ✔ test_UpdatesDocument()
+    ✔ test_RevertsWhenNonAdminApproves()
+    ✔ test_RevertsUpdateWhenNotRegistered()
+    ✔ test_RevertsRequesterRegisteringAsPatient()
+    ✔ test_RevertsRemovingUnknownRequester()
+    ✔ test_RevertsGetUserWhenNotRegistered()
+    ✔ test_RevertsEmptyStorageRef()
+    ✔ test_RevertsEmptyEmailHash()
+    ✔ test_RevertsEmptyDocumentHash()
+    ✔ test_RevertsDoubleRegistration()
+    ✔ test_RevertsApprovingTwice()
+    ✔ test_RevertsApprovingAPatient()
+    ✔ test_RemovesRequester()
+    ✔ test_RegistersUser()
+    ✔ test_EmitsUserRegistered()
+    ✔ test_AdminApprovesRequester()
+
+  test/DataSharing.t.sol:DataSharingTest
+    ✔ test_RevertsWhenNonOwnerPauses()
+    ✔ test_RevertsGetLogWithInvalidIndex()
+    ✔ test_RevertsForUnregisteredPatient()
+    ✔ test_PauseBlocksRequests()
+    ✔ test_NoTokensMoveDuringAccess()
+    ✔ test_LogKeepsEveryAttemptInOrder()
+    ✔ test_GrantedWithValidConsent()
+    ✔ test_EmitsAccessGranted()
+    ✔ test_DeniedWithoutConsent()
+    ✔ test_DeniedWhenRevoked()
+    ✔ test_DeniedWhenRequesterNotApproved()
+    ✔ test_DeniedWhenExpired()
+    ✔ test_DeniedAfterRequesterRemoved()
+
+  test/ConsentManager.t.sol:ConsentManagerTest
+    ✔ test_RewardForEachNewRequester()
+    ✔ test_RevokesConsent()
+    ✔ test_RevertsWhenNonOwnerChangesReward()
+    ✔ test_RevertsRevokeWithoutConsent()
+    ✔ test_RevertsRevokeTwice()
+    ✔ test_RevertsRevokeAfterExpiry()
+    ✔ test_RevertsOnZeroDays()
+    ✔ test_RevertsOnMoreThan365Days()
+    ✔ test_RevertsIfRequesterNotApproved()
+    ✔ test_RevertsIfPatientNotRegistered()
+    ✔ test_RequesterCannotRevokeForPatient()
+    ✔ test_OwnerChangesRewardAmount()
+    ✔ test_NoSecondRewardForSameRequester()
+    ✔ test_NoConsentIsNotValid()
+    ✔ test_MintsRewardOnFirstGrant()
+    ✔ test_GrantsConsent()
+    ✔ test_GrantAgainReplacesConsent()
+    ✔ test_EmitsConsentGranted()
+    ✔ test_ConsentExpiresExactlyAtExpiresAt()
+    ✔ test_AcceptsBoundaryDurations()
+    ✔ testFuzz_AnyDurationInRangeWorks(uint256) (runs: 256)
+
+
+  64 passing
+╔═════════════════════════════════════════════════════════════════════════╗
+║                          Gas Usage Statistics                           ║
+╚═════════════════════════════════════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════╗
+║ contracts/AccessToken.sol:AccessToken                                   ║
+╟─────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
+║ Function name       │ Min    │ Average │ Median │ Max    │ #calls       ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ allowance           │ 2755   │ 2755    │ 2755   │ 2755   │ 2            ║
+║ approve             │ 46193  │ 46193   │ 46193  │ 46193  │ 2            ║
+║ balanceOf           │ 2561   │ 2561    │ 2561   │ 2561   │ 14           ║
+║ decimals            │ 2423   │ 2423    │ 2423   │ 2423   │ 1            ║
+║ mint                │ 70478  │ 70478   │ 70478  │ 70478  │ 4            ║
+║ minter              │ 2359   │ 2359    │ 2359   │ 2359   │ 1            ║
+║ name                │ 3077   │ 3077    │ 3077   │ 3077   │ 1            ║
+║ owner               │ 2403   │ 2403    │ 2403   │ 2403   │ 1            ║
+║ setMinter           │ 30202  │ 43882   │ 47302  │ 47302  │ 5            ║
+║ symbol              │ 3099   │ 3099    │ 3099   │ 3099   │ 1            ║
+║ totalSupply         │ 2361   │ 2361    │ 2361   │ 2361   │ 4            ║
+║ transfer            │ 51606  │ 51606   │ 51606  │ 51606  │ 1            ║
+║ transferFrom        │ 57726  │ 57726   │ 57726  │ 57726  │ 1            ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ Deployment          │ Min    │ Average │ Median │ Max    │ #deployments ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║                     │ 721687 │ 721687  │ 721687 │ 721687 │ 4            ║
+╟─────────────────────┼────────┼─────────┴────────┴────────┴──────────────╢
+║ Bytecode size       │ 2645   │                                          ║
+╚═════════════════════╧════════╧══════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════╗
+║ contracts/ConsentManager.sol:ConsentManager                             ║
+╟─────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
+║ Function name       │ Min    │ Average │ Median │ Max    │ #calls       ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ getConsent          │ 3549   │ 3549    │ 3549   │ 3549   │ 24           ║
+║ grantConsent        │ 39283  │ 98865   │ 110225 │ 110225 │ 31           ║
+║ isConsentValid      │ 3252   │ 3287    │ 3294   │ 3294   │ 9            ║
+║ revokeConsent       │ 28969  │ 28969   │ 28969  │ 28969  │ 6            ║
+║ rewarded            │ 2829   │ 2829    │ 2829   │ 2829   │ 1            ║
+║ setRewardAmount     │ 29712  │ 29712   │ 29712  │ 29712  │ 1            ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ Deployment          │ Min    │ Average │ Median │ Max    │ #deployments ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║                     │ 774213 │ 774213  │ 774213 │ 774213 │ 3            ║
+╟─────────────────────┼────────┼─────────┴────────┴────────┴──────────────╢
+║ Bytecode size       │ 3112   │                                          ║
+╚═════════════════════╧════════╧══════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════╗
+║ contracts/DataSharing.sol:DataSharing                                   ║
+╟─────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
+║ Function name       │ Min    │ Average │ Median │ Max    │ #calls       ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ getLog              │ 6058   │ 6058    │ 6058   │ 6058   │ 7            ║
+║ getLogCount         │ 2557   │ 2557    │ 2557   │ 2557   │ 4            ║
+║ getLogs             │ 12337  │ 15486   │ 15486  │ 18635  │ 2            ║
+║ pause               │ 27472  │ 27472   │ 27472  │ 27472  │ 1            ║
+║ requestAccess       │ 63414  │ 80137   │ 87209  │ 87322  │ 23           ║
+║ unpause             │ 27494  │ 27494   │ 27494  │ 27494  │ 1            ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ Deployment          │ Min    │ Average │ Median │ Max    │ #deployments ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║                     │ 774276 │ 774276  │ 774276 │ 774276 │ 2            ║
+╟─────────────────────┼────────┼─────────┴────────┴────────┴──────────────╢
+║ Bytecode size       │ 3214   │                                          ║
+╚═════════════════════╧════════╧══════════════════════════════════════════╝
+╔═════════════════════════════════════════════════════════════════════════╗
+║ contracts/DigitalIdentity.sol:DigitalIdentity                           ║
+╟─────────────────────┬────────┬─────────┬────────┬────────┬──────────────╢
+║ Function name       │ Min    │ Average │ Median │ Max    │ #calls       ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ approveRequester    │ 49692  │ 49692   │ 49692  │ 49692  │ 12           ║
+║ getUser             │ 12455  │ 12455   │ 12455  │ 12455  │ 3            ║
+║ isApprovedRequester │ 2493   │ 2493    │ 2493   │ 2493   │ 59           ║
+║ isRegistered        │ 2600   │ 2600    │ 2600   │ 2600   │ 60           ║
+║ registerUser        │ 144151 │ 159848  │ 161275 │ 161275 │ 12           ║
+║ removeRequester     │ 25514  │ 25514   │ 25514  │ 25514  │ 3            ║
+║ updateDocument      │ 39333  │ 40763   │ 40763  │ 42193  │ 2            ║
+║ userCount           │ 2284   │ 2284    │ 2284   │ 2284   │ 1            ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║ Deployment          │ Min    │ Average │ Median │ Max    │ #deployments ║
+╟─────────────────────┼────────┼─────────┼────────┼────────┼──────────────╢
+║                     │ 850665 │ 850665  │ 850665 │ 850665 │ 4            ║
+╟─────────────────────┼────────┼─────────┴────────┴────────┴──────────────╢
+║ Bytecode size       │ 3585   │                                          ║
+╚═════════════════════╧════════╧══════════════════════════════════════════╝
+
+
