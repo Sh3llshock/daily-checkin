@@ -34,9 +34,16 @@ contract AccessTokenTest is Test {
     // --- Minter -------------------------------------------------------
 
     function test_OwnerSetsMinter() public {
-        address newMinter = makeAddr("newMinter");
-        token.setMinter(newMinter);
-        assertEq(token.minter(), newMinter);
+        AccessToken fresh = new AccessToken();
+        fresh.setMinter(minter);
+        assertEq(fresh.minter(), minter);
+    }
+
+    function test_RevertsWhenMinterSetTwice() public {
+        // otherwise the owner could make their own wallet the minter
+        vm.expectRevert("Minter already set");
+        token.setMinter(admin);
+        assertEq(token.minter(), minter);
     }
 
     function test_RevertsWhenNonOwnerSetsMinter() public {
@@ -46,8 +53,9 @@ contract AccessTokenTest is Test {
     }
 
     function test_RevertsOnZeroMinter() public {
+        AccessToken fresh = new AccessToken();
         vm.expectRevert("Invalid minter");
-        token.setMinter(address(0));
+        fresh.setMinter(address(0));
     }
 
     function test_MinterCanMint() public {

@@ -41,9 +41,13 @@ contract AccessToken {
     }
 
     /**
-     * @dev Set the contract that is allowed to mint (ConsentManager)
+     * @dev Set the contract that is allowed to mint (ConsentManager).
+     *      Works only once, otherwise the owner could make their own
+     *      wallet the minter and create unlimited tokens. It cannot go in
+     *      the constructor because ConsentManager needs this address first.
      */
     function setMinter(address _minter) public onlyOwner {
+        require(minter == address(0), "Minter already set");
         require(_minter != address(0), "Invalid minter");
         minter = _minter;
         emit MinterChanged(_minter);

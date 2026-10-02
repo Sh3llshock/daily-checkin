@@ -44,6 +44,15 @@
         <table id="identityTable"></table>
       </div>
 
+      <div class="card" id="updateCard">
+        <h2>Renew ID document</h2>
+        <p class="hint">For a new ID. Your consents and audit log stay as they are.</p>
+        <label>Storage reference <input id="updRef" placeholder="vault://patient1"></label>
+        <label>New front of ID <input id="updFront" type="file" accept="image/*"></label>
+        <label>New back of ID <input id="updBack" type="file" accept="image/*"></label>
+        <button id="updateBtn">Hash and update</button>
+      </div>
+
       <div class="card">
         <h2>Give consent</h2>
         <label>Requester <select id="grantRequester"></select></label>

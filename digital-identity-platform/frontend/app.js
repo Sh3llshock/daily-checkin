@@ -117,6 +117,7 @@ function selectAccount(index) {
   wallet = createWalletClient({ account: current.account, chain: hardhat, transport: http(RPC) });
   $("saltBox").textContent = "";
   $("requestResult").textContent = "";
+  $("updRef").value = "";
   refresh();
 }
 
@@ -131,9 +132,11 @@ async function refreshPatient() {
   const me = current.account.address;
   const registered = await read("DigitalIdentity", "isRegistered", [me]);
   $("registerCard").style.display = registered ? "none" : "block";
+  $("updateCard").style.display = registered ? "block" : "none";
 
   if (registered) {
     const [emailHash, frontHash, backHash, ref, registeredAt] = await read("DigitalIdentity", "getUser", [me]);
+    if (!$("updRef").value) $("updRef").value = ref;
     fillTable($("identityTable"), ["Field", "Value"], [
       ["Email hash", emailHash],
       ["Front photo hash", frontHash],
@@ -182,6 +185,25 @@ async function register() {
   const receipt = await write("DigitalIdentity", "registerUser", [emailHash, ref, frontHash, backHash]);
   if (receipt) {
     $("saltBox").textContent = "Save your salt, you need it to prove your email later: " + salt;
+    refresh();
+  }
+}
+
+// new photos after the ID was renewed, hashed in the browser like at registration
+async function updateDocument() {
+  const ref = $("updRef").value.trim();
+  const front = $("updFront").files[0];
+  const back = $("updBack").files[0];
+  if (!ref || !front || !back) {
+    setStatus("Fill in the storage reference and choose both new photos", true);
+    return;
+  }
+
+  const frontHash = await sha256File(front);
+  const backHash = await sha256File(back);
+  if (await write("DigitalIdentity", "updateDocument", [ref, frontHash, backHash])) {
+    $("updFront").value = "";
+    $("updBack").value = "";
     refresh();
   }
 }
@@ -304,6 +326,7 @@ $("accountSelect").addEventListener("change", (e) => selectAccount(Number(e.targ
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
 
 $("registerBtn").addEventListener("click", register);
+$("updateBtn").addEventListener("click", updateDocument);
 $("grantBtn").addEventListener("click", grant);
 $("requestBtn").addEventListener("click", requestAccess);
 $("approveBtn").addEventListener("click", approve);
