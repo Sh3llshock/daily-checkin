@@ -8,6 +8,7 @@ import os
 import shutil
 from eth_account import Account
 from eth_account.messages import encode_defunct
+from web3.exceptions import TransactionNotFound
 from web3.logs import DISCARD
 
 from config import VAULT_DIR, MAX_REQUEST_AGE
@@ -33,7 +34,10 @@ class Vault:
         if tx_hash in self.used_requests:
             raise PermissionError("request already used")
 
-        receipt = self.w3.eth.get_transaction_receipt(tx_hash)
+        try:
+            receipt = self.w3.eth.get_transaction_receipt(tx_hash)
+        except TransactionNotFound:
+            raise PermissionError("unknown transaction")
         if receipt["status"] != 1 or receipt["to"] != self.data_sharing.address:
             raise PermissionError("not a DataSharing transaction")
 

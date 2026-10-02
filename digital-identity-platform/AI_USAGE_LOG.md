@@ -13,3 +13,4 @@ Record of where generative AI (Claude, Anthropic) was used. It feeds the report'
 | 2026-09-30 | `scripts/simulate.ts`, `scripts/plot_results.py` | Wrote the multi-user simulation and plot | _(team member)_ |
 | 2026-09-30 | `platform/frontend/*`, `scripts/export-frontend.mjs` | Wrote the viem front-end and tested it in the browser | _(team member)_ |
 | 2026-09-30 | `deliverables/src/step4-7.md`, `report.md`, `slides.html` | Drafted steps 4-7 deliverables, the final report and the presentation | _(team member)_ |
+| 2026-10-02 | `offchain/test_vault.py`, `offchain/vault.py` | Reviewed the tests against the brief; added 11 Python tests for the vault (release per scope with matching hashes; refusal of reused, foreign-signed, denied, foreign-patient, wrong-contract, unknown, revoked and stale requests); made the vault refuse an unknown tx hash instead of crashing | _(team member)_ |
