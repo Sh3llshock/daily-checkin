@@ -26,7 +26,6 @@ async function main() {
     const numRequesters = Math.max(1, Math.ceil(n / 5));
     console.log(`\n--- ${n} patients, ${numRequesters} requesters, 1 admin ---`);
 
-    // fresh contracts for every run
     const token = await viem.deployContract("AccessToken");
     const identity = await viem.deployContract("DigitalIdentity");
     const consent = await viem.deployContract("ConsentManager", [identity.address, token.address]);

@@ -17,7 +17,6 @@ def sha256_file(path):
 
 
 def new_salt():
-    """Random 32 byte salt as 0x... hex."""
     return "0x" + os.urandom(32).hex()
 
 
@@ -30,7 +29,6 @@ def email_hash(salt, email):
 
 
 if __name__ == "__main__":
-    # usage: python hash_tool.py <file> [<file> ...]
     if len(sys.argv) < 2:
         print("usage: python hash_tool.py <file> [<file> ...]")
     for p in sys.argv[1:]:

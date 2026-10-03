@@ -1,4 +1,4 @@
-// Very small static file server for the front-end (no extra packages needed).
+// Small static file server for the front-end, using only Node's built-in modules.
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";

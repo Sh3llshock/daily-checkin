@@ -27,8 +27,6 @@ contract DigitalIdentityTest is Test {
         identity.registerUser(emailHash, "vault://patient", frontHash, backHash);
     }
 
-    // --- Registration -------------------------------------------------
-
     function test_RegistersUser() public {
         _register();
 
@@ -86,8 +84,6 @@ contract DigitalIdentityTest is Test {
         identity.getUser(patient);
     }
 
-    // --- Update document ----------------------------------------------
-
     function test_UpdatesDocument() public {
         _register();
         bytes32 newFront = sha256("new front");
@@ -107,8 +103,6 @@ contract DigitalIdentityTest is Test {
         vm.expectRevert("Not registered");
         identity.updateDocument("vault://patient", frontHash, backHash);
     }
-
-    // --- Requesters ---------------------------------------------------
 
     function test_AdminApprovesRequester() public {
         vm.expectEmit(true, true, true, true, address(identity));

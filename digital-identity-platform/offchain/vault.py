@@ -41,7 +41,6 @@ class Vault:
         if receipt["status"] != 1 or receipt["to"] != self.data_sharing.address:
             raise PermissionError("not a DataSharing transaction")
 
-        # look for the AccessGranted event for this patient
         events = self.data_sharing.events.AccessGranted().process_receipt(receipt, errors=DISCARD)
         events = [e for e in events if e["args"]["patient"] == self.patient]
         if len(events) == 0:

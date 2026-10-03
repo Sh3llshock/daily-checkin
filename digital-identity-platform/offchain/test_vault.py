@@ -27,16 +27,16 @@ from hash_tool import sha256_file
 from vault import Vault, FRONT_ONLY, BACK_ONLY, BOTH
 
 # More public hardhat node keys (printed by `npx hardhat node`), local chain only.
-PATIENT_A_KEY = "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"  # account #4
-LAB_KEY = "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"        # account #5
-PATIENT_B_KEY = "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"  # account #6
+PATIENT_A_KEY = "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a"
+LAB_KEY = "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
+PATIENT_B_KEY = "0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e"
 
 PATIENT_A_ID = "test-vault-a"
 PATIENT_B_ID = "test-vault-b"
 
 
 def _fake_file(label):
-    """A small generated file standing in for an ID photo. Not an image, no personal data."""
+    """A small generated file standing in for an ID photo. It isn't a real image and has no personal data in it."""
     return b"\x89PNG\r\n\x1a\n" + label.encode() + secrets.token_bytes(64)
 
 
@@ -94,8 +94,6 @@ class VaultTest(unittest.TestCase):
             email_hash = "0x" + secrets.token_hex(32)
             cls._send(cls.identity.functions.registerUser(email_hash, ref, front, back), address)
 
-    # --- helpers ---------------------------------------------------------
-
     def _grant(self, patient, requester, scope, days=30):
         self._send(self.consent.functions.grantConsent(requester, scope, days), patient)
 
@@ -119,8 +117,6 @@ class VaultTest(unittest.TestCase):
     def _on_chain_hashes(self, patient):
         user = self.identity.functions.getUser(patient).call()
         return {"id_front.png": "0x" + user[1].hex(), "id_back.png": "0x" + user[2].hex()}
-
-    # --- release ---------------------------------------------------------
 
     def test_release_both_files_with_matching_hashes(self):
         self._grant(self.patient_a, self.doctor, BOTH)
@@ -154,8 +150,6 @@ class VaultTest(unittest.TestCase):
 
         self.assertEqual(files, ["id_back.png"])
         self.assertFalse(os.path.exists(os.path.join(out, "id_front.png")))
-
-    # --- refusals --------------------------------------------------------
 
     def test_same_request_cannot_be_used_twice(self):
         self._grant(self.patient_a, self.doctor, BOTH)

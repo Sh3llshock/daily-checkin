@@ -28,7 +28,7 @@ contract ConsentManagerTest is Test {
         identity.approveRequester(doctor);
         identity.approveRequester(lab);
 
-        // sha256 is a precompile call, so compute it before vm.prank
+        // sha256 is a call to a precompile, so do it before vm.prank or it uses up the prank
         bytes32 front = sha256("front");
         bytes32 back = sha256("back");
         vm.prank(patient);
@@ -39,8 +39,6 @@ contract ConsentManagerTest is Test {
         vm.prank(patient);
         consent.grantConsent(_requester, _scope, _days);
     }
-
-    // --- Granting -----------------------------------------------------
 
     function test_GrantsConsent() public {
         _grant(doctor, ConsentManager.Scope.Both, 30);
@@ -114,8 +112,6 @@ contract ConsentManagerTest is Test {
         assertTrue(consent.isConsentValid(patient, doctor));
     }
 
-    // --- Rewards ------------------------------------------------------
-
     function test_MintsRewardOnFirstGrant() public {
         _grant(doctor, ConsentManager.Scope.Both, 30);
         assertEq(token.balanceOf(patient), 10 ether);
@@ -149,8 +145,6 @@ contract ConsentManagerTest is Test {
         vm.expectRevert("Not the owner");
         consent.setRewardAmount(1000 ether);
     }
-
-    // --- Revoking -----------------------------------------------------
 
     function test_RevokesConsent() public {
         _grant(doctor, ConsentManager.Scope.Both, 30);
@@ -196,8 +190,6 @@ contract ConsentManagerTest is Test {
         consent.revokeConsent(patient);
         assertTrue(consent.isConsentValid(patient, doctor));
     }
-
-    // --- Expiry -------------------------------------------------------
 
     function test_ConsentExpiresExactlyAtExpiresAt() public {
         _grant(doctor, ConsentManager.Scope.Both, 7);

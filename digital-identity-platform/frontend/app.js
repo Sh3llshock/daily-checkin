@@ -28,8 +28,6 @@ let wallet = null;
 
 const $ = (id) => document.getElementById(id);
 
-// ---------- helpers ----------
-
 function nameOf(address) {
   const found = ACCOUNTS.find((a) => a.account.address.toLowerCase() === address.toLowerCase());
   return found ? `${found.label} (${short(address)})` : short(address);
@@ -65,7 +63,7 @@ async function write(name, functionName, args) {
     setStatus(`${functionName} confirmed in block ${receipt.blockNumber} (gas used ${receipt.gasUsed})`);
     return receipt;
   } catch (err) {
-    // show the revert message from require(), e.g. "Duration must be 1-365 days"
+    // show the require() message, like "Duration must be 1-365 days"
     setStatus(err.shortMessage ?? err.message, true);
     return null;
   }
@@ -110,8 +108,6 @@ function fillSelect(select, addresses) {
   if (addresses.includes(old)) select.value = old;
 }
 
-// ---------- account ----------
-
 function selectAccount(index) {
   current = ACCOUNTS[index];
   wallet = createWalletClient({ account: current.account, chain: hardhat, transport: http(RPC) });
@@ -125,8 +121,6 @@ async function refreshAccountInfo() {
   const balance = await read("AccessToken", "balanceOf", [current.account.address]);
   $("accountInfo").textContent = `${current.account.address}  |  ${formatEther(balance)} ACT`;
 }
-
-// ---------- patient tab ----------
 
 async function refreshPatient() {
   const me = current.account.address;
@@ -176,7 +170,7 @@ async function register() {
     return;
   }
 
-  // the salt makes the email hash impossible to guess, the patient has to keep it
+  // without the salt the email could be guessed from its hash; the patient has to keep the salt
   const salt = toHex(crypto.getRandomValues(new Uint8Array(32)));
   const emailHash = keccak256(encodePacked(["bytes32", "string"], [salt, email]));
   const frontHash = await sha256File(front);
@@ -223,8 +217,6 @@ async function revoke(requester) {
   if (await write("ConsentManager", "revokeConsent", [requester])) refresh();
 }
 
-// ---------- requester tab ----------
-
 async function refreshRequester() {
   fillSelect($("requestPatient"), await registeredPatients());
 
@@ -264,8 +256,6 @@ async function requestAccess() {
   refresh();
 }
 
-// ---------- admin tab ----------
-
 async function refreshAdmin() {
   const requesters = await approvedRequesters();
   fillTable($("requesterTable"), ["Requester", ""], requesters.map((r) => [
@@ -285,8 +275,6 @@ async function approve() {
   }
 }
 
-// ---------- audit tab ----------
-
 async function refreshAudit() {
   fillSelect($("auditPatient"), await registeredPatients());
   const patient = $("auditPatient").value;
@@ -303,8 +291,6 @@ async function refreshAudit() {
     l.result === 0 ? SCOPES[l.scope] : REASONS[l.reason],
   ]).reverse());
 }
-
-// ---------- setup ----------
 
 async function refresh() {
   try {
@@ -334,7 +320,7 @@ $("pauseBtn").addEventListener("click", async () => { if (await write("DataShari
 $("unpauseBtn").addEventListener("click", async () => { if (await write("DataSharing", "unpause", [])) refresh(); });
 $("auditPatient").addEventListener("change", refreshAudit);
 
-// buttons inside tables
+// one listener for the Revoke and Remove buttons, because the table rows are rebuilt on every refresh
 document.addEventListener("click", async (e) => {
   if (e.target.dataset.revoke) revoke(e.target.dataset.revoke);
   if (e.target.dataset.remove) {
@@ -342,7 +328,7 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// ?account=1#requester opens a certain account and tab (handy for screenshots)
+// ?account=1#requester opens that account and tab, useful for screenshots
 const params = new URLSearchParams(location.search);
 const startAccount = Number(params.get("account") ?? 0);
 $("accountSelect").value = startAccount;

@@ -20,7 +20,7 @@ async function main() {
   const wallets = await viem.getWalletClients();
   const admin = wallets[0];
   const doctors = wallets.slice(1, 3);
-  const patients = wallets.slice(3, 13); // 10 patients
+  const patients = wallets.slice(3, 13);
 
   async function send(name: string, hashPromise: Promise<`0x${string}`>) {
     const receipt = await publicClient.waitForTransactionReceipt({ hash: await hashPromise });
@@ -91,7 +91,6 @@ async function main() {
     ));
   }
 
-  // print a table and save json
   const rows: any[] = [];
   console.log(`\nGas report (${label})\n`);
   console.log("| Operation | Calls | Min | Avg | Max |");

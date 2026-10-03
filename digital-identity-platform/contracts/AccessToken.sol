@@ -8,7 +8,6 @@ pragma solidity ^0.8.28;
  *      Holding tokens does not give access to any data.
  */
 contract AccessToken {
-    // Token metadata
     string public name = "Access Token";
     string public symbol = "ACT";
     uint8 public decimals = 18;
@@ -17,11 +16,9 @@ contract AccessToken {
     address public owner;
     address public minter;
 
-    // Balances and allowances
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    // Events
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event MinterChanged(address indexed newMinter);
@@ -41,10 +38,10 @@ contract AccessToken {
     }
 
     /**
-     * @dev Set the contract that is allowed to mint (ConsentManager).
-     *      Works only once, otherwise the owner could make their own
-     *      wallet the minter and create unlimited tokens. It cannot go in
-     *      the constructor because ConsentManager needs this address first.
+     * @dev Makes ConsentManager the only minter. Can only be called once, so
+     *      the owner can't later switch the minter to their own wallet and mint
+     *      unlimited tokens. It's not a constructor argument because
+     *      ConsentManager needs this contract's address when it's deployed.
      */
     function setMinter(address _minter) public onlyOwner {
         require(minter == address(0), "Minter already set");
@@ -53,9 +50,6 @@ contract AccessToken {
         emit MinterChanged(_minter);
     }
 
-    /**
-     * @dev Mint reward tokens to a patient
-     */
     function mint(address _to, uint256 _amount) public onlyMinter {
         require(_to != address(0), "Mint to zero address");
 

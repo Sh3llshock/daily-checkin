@@ -29,7 +29,7 @@ contract DataSharingTest is Test {
         token.setMinter(address(consent));
 
         identity.approveRequester(doctor);
-        // sha256 is a precompile call, so compute it before vm.prank
+        // sha256 is a call to a precompile, so do it before vm.prank or it uses up the prank
         bytes32 front = sha256("front");
         bytes32 back = sha256("back");
         vm.prank(patient);
@@ -45,8 +45,6 @@ contract DataSharingTest is Test {
         vm.prank(_requester);
         return sharing.requestAccess(patient);
     }
-
-    // --- Granted ------------------------------------------------------
 
     function test_GrantedWithValidConsent() public {
         _grant(ConsentManager.Scope.Both, 30);
@@ -68,8 +66,6 @@ contract DataSharingTest is Test {
         emit DataSharing.AccessGranted(patient, doctor, uint8(ConsentManager.Scope.FrontOnly), 0);
         _request(doctor);
     }
-
-    // --- Denied (must not revert, must be logged) ----------------------
 
     function test_DeniedWithoutConsent() public {
         vm.expectEmit(true, true, true, true, address(sharing));
@@ -120,8 +116,6 @@ contract DataSharingTest is Test {
         sharing.requestAccess(makeAddr("nobody"));
     }
 
-    // --- Audit log ----------------------------------------------------
-
     function test_LogKeepsEveryAttemptInOrder() public {
         _request(doctor);                        // denied, no consent
         _grant(ConsentManager.Scope.Both, 30);
@@ -153,8 +147,6 @@ contract DataSharingTest is Test {
         assertEq(token.balanceOf(patient), patientBefore);
         assertEq(token.balanceOf(doctor), 0);
     }
-
-    // --- Pause --------------------------------------------------------
 
     function test_PauseBlocksRequests() public {
         sharing.pause();

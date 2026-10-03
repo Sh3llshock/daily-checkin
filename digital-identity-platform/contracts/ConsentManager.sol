@@ -24,7 +24,6 @@ contract ConsentManager {
         bool rewarded;   // patient already got tokens for this requester
     }
 
-    // State variables
     address public owner;
     IDigitalIdentity public immutable identity;
     IAccessToken public immutable token;
@@ -36,7 +35,6 @@ contract ConsentManager {
     // patient => requester => consent
     mapping(address => mapping(address => Consent)) private consents;
 
-    // Events
     event ConsentGranted(address indexed patient, address indexed requester, Scope scope, uint256 expiresAt);
     event ConsentRevoked(address indexed patient, address indexed requester);
     event RewardAmountChanged(uint256 newAmount);
@@ -87,9 +85,6 @@ contract ConsentManager {
         }
     }
 
-    /**
-     * @dev Revoke consent. Works straight away.
-     */
     function revokeConsent(address _requester) external {
         Consent storage c = consents[msg.sender][_requester];
         require(c.exists, "No consent found");
@@ -100,9 +95,6 @@ contract ConsentManager {
         emit ConsentRevoked(msg.sender, _requester);
     }
 
-    /**
-     * @dev A consent is valid if it exists, is not revoked and not expired
-     */
     function isConsentValid(address _patient, address _requester) public view returns (bool) {
         Consent memory c = consents[_patient][_requester];
         return c.exists && !c.revoked && block.timestamp < c.expiresAt;

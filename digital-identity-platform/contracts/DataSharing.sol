@@ -24,7 +24,6 @@ contract DataSharing {
         uint64 timestamp;
     }
 
-    // State variables
     address public owner;
     bool public paused;
     IDigitalIdentity public immutable identity;
@@ -33,7 +32,6 @@ contract DataSharing {
     // patient => list of all access attempts (append only, nothing can delete it)
     mapping(address => AccessLog[]) private accessLogs;
 
-    // Events
     event AccessGranted(address indexed patient, address indexed requester, uint8 scope, uint256 logIndex);
     event AccessDenied(address indexed patient, address indexed requester, Reason reason, uint256 logIndex);
     event Paused(bool isPaused);
@@ -113,7 +111,7 @@ contract DataSharing {
         return accessLogs[_patient];
     }
 
-    // Emergency stop, like in the EscrowManager from lab 4
+    // emergency stop, same idea as the EscrowManager in the lab 5 demo
     function pause() external onlyOwner {
         paused = true;
         emit Paused(true);

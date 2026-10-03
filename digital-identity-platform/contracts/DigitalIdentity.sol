@@ -9,7 +9,7 @@ pragma solidity ^0.8.28;
  */
 contract DigitalIdentity {
     struct User {
-        bytes32 emailHash;   // keccak256(salt, email), salt stays with the patient
+        bytes32 emailHash;   // keccak256(salt, email), salted so nobody can guess the email; only the patient has the salt
         bytes32 frontHash;   // sha256 of the front photo of the ID
         bytes32 backHash;    // sha256 of the back photo of the ID
         string storageRef;   // where the patient's vault can be reached
@@ -17,13 +17,11 @@ contract DigitalIdentity {
         bool registered;
     }
 
-    // State variables
     address public owner;
     uint256 public userCount;
     mapping(address => User) private users;
     mapping(address => bool) public isApprovedRequester;
 
-    // Events
     event UserRegistered(address indexed user, bytes32 emailHash);
     event DocumentUpdated(address indexed user);
     event RequesterApproved(address indexed requester);
@@ -76,7 +74,7 @@ contract DigitalIdentity {
     }
 
     /**
-     * @dev Update the document hashes, e.g. after the ID was renewed
+     * @dev For a renewed ID: replaces the storage reference and both photo hashes.
      */
     function updateDocument(
         string calldata _storageRef,
@@ -94,9 +92,6 @@ contract DigitalIdentity {
         emit DocumentUpdated(msg.sender);
     }
 
-    /**
-     * @dev Admin approves a healthcare provider as requester
-     */
     function approveRequester(address _requester) external onlyOwner {
         require(_requester != address(0), "Invalid address");
         require(!users[_requester].registered, "Address is a patient");
@@ -117,9 +112,6 @@ contract DigitalIdentity {
         return users[_user].registered;
     }
 
-    /**
-     * @dev Returns the stored hashes and reference of a patient
-     */
     function getUser(address _user) external view returns (
         bytes32 emailHash,
         bytes32 frontHash,

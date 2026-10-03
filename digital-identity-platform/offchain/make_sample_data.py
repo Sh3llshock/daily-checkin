@@ -1,6 +1,7 @@
 """
 Creates a fake patient in the local vault: a profile json and two
-generated ID card images. Everything is made up, no real personal data.
+generated ID card images. Everything in it is made up, so there's no
+real personal data.
 """
 
 import json

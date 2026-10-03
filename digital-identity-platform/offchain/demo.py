@@ -62,12 +62,10 @@ def main():
 
     print("\n=== Off-chain demo ===\n")
 
-    # 1. admin approves the doctor
     if not identity.functions.isApprovedRequester(config.DOCTOR).call():
         send(identity.functions.approveRequester(config.DOCTOR), config.ADMIN)
     print("1. Doctor approved by admin")
 
-    # 2. patient hashes the files and registers
     with open(os.path.join(folder, "profile.json")) as f:
         profile = json.load(f)
     with open(os.path.join(folder, "salt.txt")) as f:
@@ -87,12 +85,10 @@ def main():
 
     vault = Vault(w3, config.PATIENT, PATIENT_ID, sharing, consent)
 
-    # 3. patient gives the doctor consent for both sides, 30 days
     send(consent.functions.grantConsent(config.DOCTOR, BOTH, 30), config.PATIENT)
     balance = token.functions.balanceOf(config.PATIENT).call()
     print("3. Consent granted (Both, 30 days), patient ACT balance:", w3.from_wei(balance, "ether"))
 
-    # 4. doctor requests access and downloads from the vault
     tx_hash, sig, granted = request_access(w3, sharing, config.DOCTOR, config.DOCTOR_KEY)
     print("4. Doctor requestAccess ->", "GRANTED" if granted else "DENIED")
     out = os.path.join(config.DOWNLOAD_DIR, "doctor")
@@ -100,13 +96,11 @@ def main():
     print("   Vault released:", files)
     check_hashes(identity, out, files)
 
-    # 5. the same request cannot be used twice
     try:
         vault.release(tx_hash, sig, out)
     except PermissionError as e:
         print("5. Reusing the same request ->", e)
 
-    # 6. someone else tries to use the doctor's transaction
     stranger_sig = Account.sign_message(encode_defunct(text=tx_hash), private_key=config.STRANGER_KEY).signature
     tx_hash2, sig2, _ = request_access(w3, sharing, config.DOCTOR, config.DOCTOR_KEY)
     try:
@@ -114,7 +108,8 @@ def main():
     except PermissionError as e:
         print("6. Stranger uses doctor's request ->", e)
 
-    # 7. the file is changed after leaving the vault (e.g. on the way), the doctor notices it
+    # change the photo after it left the vault, as if it was tampered with on the way;
+    # the doctor's hash check should catch it
     tampered = os.path.join(config.DOWNLOAD_DIR, "doctor_tampered")
     files = vault.release(tx_hash2, sig2, tampered)
     with open(os.path.join(tampered, "id_front.png"), "ab") as f:
@@ -122,7 +117,6 @@ def main():
     print("7. Front photo changed after download:")
     check_hashes(identity, tampered, files)
 
-    # 8. patient revokes, the doctor is denied and the vault refuses
     send(consent.functions.revokeConsent(config.DOCTOR), config.PATIENT)
     tx_hash3, sig3, granted = request_access(w3, sharing, config.DOCTOR, config.DOCTOR_KEY)
     print("8. Consent revoked, doctor requestAccess ->", "GRANTED" if granted else "DENIED")
@@ -131,7 +125,6 @@ def main():
     except PermissionError as e:
         print("   Vault ->", e)
 
-    # 9. audit log from the chain
     print("9. Audit log of the patient (on-chain):")
     for i, log in enumerate(sharing.functions.getLogs(config.PATIENT).call()):
         requester, scope, result, reason, timestamp = log

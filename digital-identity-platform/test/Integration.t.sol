@@ -17,8 +17,8 @@ contract IntegrationTest is Test {
     DataSharing sharing;
 
     address admin;
-    address alice;   // patient
-    address bob;     // patient
+    address alice;
+    address bob;
     address doctor;
     address lab;
 
@@ -38,7 +38,7 @@ contract IntegrationTest is Test {
     }
 
     function _register(address _patient, string memory _ref) internal {
-        // sha256 is a precompile call, so it has to happen before vm.prank
+        // sha256 is a call to a precompile, so do it before vm.prank or it uses up the prank
         bytes32 front = sha256(abi.encodePacked(_ref, "front"));
         bytes32 back = sha256(abi.encodePacked(_ref, "back"));
         vm.prank(_patient);
@@ -46,7 +46,6 @@ contract IntegrationTest is Test {
     }
 
     function test_FullWorkflow() public {
-        // admin approves the doctor, alice registers
         identity.approveRequester(doctor);
         _register(alice, "vault://alice");
 

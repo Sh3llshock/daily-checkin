@@ -21,8 +21,6 @@ contract AccessTokenTest is Test {
         token.setMinter(minter);
     }
 
-    // --- Deployment ---------------------------------------------------
-
     function test_Metadata() public view {
         assertEq(token.name(), "Access Token");
         assertEq(token.symbol(), "ACT");
@@ -30,8 +28,6 @@ contract AccessTokenTest is Test {
         assertEq(token.owner(), admin);
         assertEq(token.totalSupply(), 0);
     }
-
-    // --- Minter -------------------------------------------------------
 
     function test_OwnerSetsMinter() public {
         AccessToken fresh = new AccessToken();
@@ -78,8 +74,6 @@ contract AccessTokenTest is Test {
         vm.expectRevert("Not the minter");
         token.mint(admin, 1 ether);
     }
-
-    // --- ERC-20 -------------------------------------------------------
 
     function test_Transfer() public {
         vm.prank(minter);

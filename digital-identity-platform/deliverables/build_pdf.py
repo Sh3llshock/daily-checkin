@@ -15,7 +15,7 @@ import re
 import subprocess
 import sys
 import markdown
-import pymupdf as fitz  # used to add page numbers to the report
+import pymupdf as fitz
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "src")
