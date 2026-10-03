@@ -6,7 +6,7 @@ BCS3210 Blockchains group project. Patients keep the photos of their government 
 
 - Node.js 22 or newer (Hardhat 3 does not run on older versions)
 - Python 3.10 or newer (off-chain part and plots)
-- Google Chrome or any modern browser (front-end)
+- Google Chrome (only to rebuild the deliverable PDFs)
 
 ## Setup
 
@@ -36,7 +36,6 @@ pip install -r offchain/requirements.txt
 | `scripts/simulate.ts` | Simulation with 5 to 100 patients (time and gas) |
 | `scripts/plot_results.py` | Plot of the simulation results |
 | `offchain/` | Python: hashing, patient vault, end-to-end demo |
-| `frontend/` | Web front-end with viem |
 | `results/` | Saved measurements |
 
 ## Tests and gas
@@ -68,12 +67,11 @@ npm run deploy:local                # Ignition, addresses in ignition/deployment
 npm run simulate                    # simulation -> results/simulation-localhost.json
 python offchain/make_sample_data.py # fake patient in offchain/vault/
 python offchain/demo.py             # vault + hash check end-to-end
-npm run frontend                    # open http://localhost:5173
 ```
 
-If you restart the node, run `npm run deploy:local` again (it uses `--reset`) and restart the front-end.
+If you restart the node, run `npm run deploy:local` again (it uses `--reset`).
 
-The front-end uses the public Hardhat test accounts, which only work on the local chain. No real personal data is used anywhere, the sample patient and images are generated.
+The scripts use the public Hardhat test accounts, which only work on the local chain. No real personal data is used anywhere, the sample patient and images are generated.
 
 ## Deliverables
 

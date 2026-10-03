@@ -10,8 +10,7 @@
     "deploy:local": "hardhat ignition deploy ignition/modules/Platform.ts --network localhost --reset",
     "demo": "hardhat run scripts/demo.ts",
     "simulate": "hardhat run scripts/simulate.ts --network localhost",
-    "gas-report": "hardhat run scripts/gas-report.ts",
-    "frontend": "node scripts/export-frontend.mjs && node frontend/server.mjs"
+    "gas-report": "hardhat run scripts/gas-report.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.1.8",
