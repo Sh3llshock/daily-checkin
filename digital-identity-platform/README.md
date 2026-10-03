@@ -36,13 +36,13 @@ pip install -r offchain/requirements.txt
 | `scripts/simulate.ts` | Simulation with 5 to 100 patients (time and gas) |
 | `scripts/plot_results.py` | Plot of the simulation results |
 | `offchain/` | Python: hashing, patient vault, end-to-end demo |
-| `frontend/` | Web front-end with viem |
+| `frontend/` | Web front-end with viem, wireframes in `frontend/wireframes.png` |
 | `results/` | Saved measurements |
 
 ## Tests and gas
 
 ```
-npx hardhat test                    # 64 Solidity tests
+npx hardhat test                    # 65 Solidity tests
 npx hardhat test --gas-stats        # same, with gas table
 npm run gas-report                  # scenario gas report -> results/gas-report-latest.json
 ```
@@ -68,18 +68,10 @@ npm run deploy:local                # Ignition, addresses in ignition/deployment
 npm run simulate                    # simulation -> results/simulation-localhost.json
 python offchain/make_sample_data.py # fake patient in offchain/vault/
 python offchain/demo.py             # vault + hash check end-to-end
+python -m unittest discover -s offchain -p "test_*.py"   # 11 vault tests
 npm run frontend                    # open http://localhost:5173
 ```
 
 If you restart the node, run `npm run deploy:local` again (it uses `--reset`) and restart the front-end.
 
 The front-end uses the public Hardhat test accounts, which only work on the local chain. No real personal data is used anywhere, the sample patient and images are generated.
-
-## Deliverables
-
-The step deliverables, the final report and the presentation are in `deliverables/`. To rebuild the PDFs (needs Google Chrome and `pip install markdown pymupdf`):
-
-```
-python deliverables/build_pdf.py                 # step1 ... step7
-python deliverables/build_pdf.py report slides   # report.pdf, presentation.pdf
-```

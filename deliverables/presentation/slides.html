@@ -32,7 +32,7 @@
 <div class="slide title">
   <h1>ID Share</h1>
   <p>Consent-based sharing of government ID documents in healthcare on Ethereum</p>
-  <p style="font-size:15pt">BCS3210 Blockchains, group project<br>[Names of the group members]</p>
+  <p style="font-size:15pt">BCS3210 Blockchains, Group 21<br>Sam Prior, Gyorgy Balint, Luka Toplak, Jack Bikar</p>
 </div>
 
 <div class="slide">
@@ -137,13 +137,13 @@ emit granted ? AccessGranted
   <h2>Testing</h2>
   <div class="cols">
     <div>
-      <p class="big">64 / 64 passing</p>
-      <p>Solidity tests with forge-std, incl. a fuzz test (256 runs)</p>
+      <p class="big">65 / 65 passing</p>
+      <p>Solidity tests with forge-std, incl. a fuzz test (256 runs), plus 11 Python tests for the vault</p>
       <p class="note">Only generated addresses and fake hashes, no personal data.</p>
     </div>
     <table>
       <tr><th>File</th><th>Tests</th></tr>
-      <tr><td>AccessToken.t.sol</td><td>10</td></tr>
+      <tr><td>AccessToken.t.sol</td><td>11</td></tr>
       <tr><td>DigitalIdentity.t.sol</td><td>16</td></tr>
       <tr><td>ConsentManager.t.sol</td><td>21</td></tr>
       <tr><td>DataSharing.t.sol</td><td>13</td></tr>
@@ -170,7 +170,7 @@ emit granted ? AccessGranted
       <tr><td>requestAccess (granted)</td><td>107,429</td><td><b>70,108</b> (-35%)</td></tr>
       <tr><td>grantConsent (first)</td><td>187,290</td><td><b>94,835</b> (-49%)</td></tr>
       <tr><td>registerUser</td><td>167,975</td><td><b>145,921</b> (-13%)</td></tr>
-      <tr><td>Deployment (all)</td><td>3.14 M</td><td>3.17 M (+1%)</td></tr>
+      <tr><td>Deployment (all)</td><td>3.14 M</td><td>3.19 M (+1.4%)</td></tr>
     </table>
   </div>
   <div class="num">8</div>
@@ -184,7 +184,7 @@ emit granted ? AccessGranted
       <li>Gas per operation constant: no loops over users</li>
       <li>~420k gas per patient lifecycle</li>
       <li>100 patients: 470 tx in 3.8 s</li>
-      <li>8 to 10 ms confirmation on the local node</li>
+      <li>About 4 to 13 ms per operation on the local node</li>
       <li>200 audit events read in 27 ms</li>
     </ul>
   </div>
