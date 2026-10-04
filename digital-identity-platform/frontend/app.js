@@ -212,21 +212,6 @@ async function revoke(requester) {
 
 async function refreshRequester() {
   fillSelect($("requestPatient"), await registeredPatients());
-
-  const me = current.account.address;
-  const granted = await events("DataSharing", "AccessGranted", { requester: me });
-  const denied = await events("DataSharing", "AccessDenied", { requester: me });
-  const all = [
-    ...granted.map((e) => ({ e, ok: true })),
-    ...denied.map((e) => ({ e, ok: false })),
-  ].sort((a, b) => Number(b.e.blockNumber - a.e.blockNumber));
-
-  fillTable($("myRequestsTable"), ["Block", "Patient", "Result", "Details"], all.map(({ e, ok }) => [
-    e.blockNumber.toString(),
-    nameOf(e.args.patient),
-    ok ? `<span class="granted">GRANTED</span>` : `<span class="denied">DENIED</span>`,
-    ok ? SCOPES[e.args.scope] : REASONS[e.args.reason],
-  ]));
 }
 
 async function requestAccess() {
@@ -247,17 +232,6 @@ async function requestAccess() {
     $("requestResult").innerHTML = `<span class="denied">DENIED</span>: ${REASONS[log.args.reason]}. The attempt was logged.`;
   }
   refresh();
-}
-
-async function refreshAdmin() {
-  const requesters = await approvedRequesters();
-  fillTable($("requesterTable"), ["Requester", ""], requesters.map((r) => [
-    nameOf(r),
-    `<button class="small" data-remove="${r}">Remove</button>`,
-  ]));
-  const paused = await read("DataSharing", "paused");
-  $("pausedState").textContent = paused ? "PAUSED" : "running";
-  $("rewardAmount").textContent = formatEther(await read("ConsentManager", "rewardAmount"));
 }
 
 async function approve() {
@@ -288,7 +262,7 @@ async function refreshAudit() {
 async function refresh() {
   try {
     await refreshAccountInfo();
-    await Promise.all([refreshPatient(), refreshRequester(), refreshAdmin(), refreshAudit()]);
+    await Promise.all([refreshPatient(), refreshRequester(), refreshAudit()]);
   } catch (err) {
     setStatus("Cannot reach the contracts. Is `npx hardhat node` running and deployed? " + (err.shortMessage ?? err.message), true);
   }
@@ -309,19 +283,11 @@ $("updateBtn").addEventListener("click", updateDocument);
 $("grantBtn").addEventListener("click", grant);
 $("requestBtn").addEventListener("click", requestAccess);
 $("approveBtn").addEventListener("click", approve);
-$("pauseBtn").addEventListener("click", async () => { if (await write("DataSharing", "pause", [])) refresh(); });
-$("unpauseBtn").addEventListener("click", async () => { if (await write("DataSharing", "unpause", [])) refresh(); });
 $("auditPatient").addEventListener("change", refreshAudit);
 
-document.addEventListener("click", async (e) => {
+document.addEventListener("click", (e) => {
   if (e.target.dataset.revoke) revoke(e.target.dataset.revoke);
-  if (e.target.dataset.remove) {
-    if (await write("DigitalIdentity", "removeRequester", [e.target.dataset.remove])) refresh();
-  }
 });
 
-const params = new URLSearchParams(location.search);
-const startAccount = Number(params.get("account") ?? 0);
-$("accountSelect").value = startAccount;
-showTab(location.hash.slice(1) || "patient");
-selectAccount(startAccount);
+showTab("patient");
+selectAccount(0);
