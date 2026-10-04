@@ -5,12 +5,12 @@
       "contractName": "AccessToken",
       "proxyChain": [],
       "deployment": {
-        "min": 721687,
-        "max": 721687,
-        "avg": 721687,
-        "median": 721687,
-        "count": 4,
-        "runtimeSize": 2645
+        "min": 738560,
+        "max": 738560,
+        "avg": 738560,
+        "median": 738560,
+        "count": 6,
+        "runtimeSize": 2723
       },
       "functions": {
         "allowance": {
@@ -53,7 +53,7 @@
           "max": 2359,
           "avg": 2359,
           "median": 2359,
-          "count": 1
+          "count": 2
         },
         "name": {
           "min": 3077,
@@ -70,10 +70,10 @@
           "count": 1
         },
         "setMinter": {
-          "min": 30202,
-          "max": 47302,
-          "avg": 43882,
-          "median": 47302,
+          "min": 47440,
+          "max": 47440,
+          "avg": 47440,
+          "median": 47440,
           "count": 5
         },
         "symbol": {
@@ -225,10 +225,10 @@
       "contractName": "DigitalIdentity",
       "proxyChain": [],
       "deployment": {
-        "min": 850665,
-        "max": 850665,
-        "avg": 850665,
-        "median": 850665,
+        "min": 850653,
+        "max": 850653,
+        "avg": 850653,
+        "median": 850653,
         "count": 4,
         "runtimeSize": 3585
       },

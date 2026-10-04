@@ -2,16 +2,16 @@
   {
     "name": "deploy AccessToken",
     "calls": 1,
-    "min": 721687,
-    "avg": 721687,
-    "max": 721687
+    "min": 738548,
+    "avg": 738548,
+    "max": 738548
   },
   {
     "name": "deploy DigitalIdentity",
     "calls": 1,
-    "min": 850665,
-    "avg": 850665,
-    "max": 850665
+    "min": 850653,
+    "avg": 850653,
+    "max": 850653
   },
   {
     "name": "deploy ConsentManager",
@@ -23,16 +23,16 @@
   {
     "name": "deploy DataSharing",
     "calls": 1,
-    "min": 774276,
-    "avg": 774276,
-    "max": 774276
+    "min": 774264,
+    "avg": 774264,
+    "max": 774264
   },
   {
     "name": "setMinter",
     "calls": 1,
-    "min": 47302,
-    "avg": 47302,
-    "max": 47302
+    "min": 47440,
+    "avg": 47440,
+    "max": 47440
   },
   {
     "name": "approveRequester",

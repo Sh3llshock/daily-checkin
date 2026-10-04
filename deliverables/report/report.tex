@@ -101,7 +101,7 @@ This project proposes a decentralised identity and data-sharing platform for gov
   \item allow requesters to access a document only when valid consent exists;
   \item record all access attempts, including both granted and denied attempts, in an immutable audit log;
   \item reward patients with tokens for granting consent without making personal data something that can be bought or sold;
-  \item test the smart contracts, measure the gas cost of the main functions and simulate many patients and requesters using the system together with an administrator.
+  \item test the smart contracts, measure the gas cost of the main functions and simulate multiple patients, requesters and administrators using the system.
 \end{itemize}
 
 The system is designed as a proof of concept rather than a complete production healthcare platform. It does not remove the need for secure off-chain storage, identity verification procedures, legal agreements or compliance with healthcare and data-protection rules.
@@ -144,7 +144,7 @@ The system has three roles. Each one can only perform the actions it needs (Tabl
   \label{tab:roles}
 \end{table}
 
-We deliberately kept the administrator out of the data path, so it never sees the documents and cannot grant or revoke consent on anyone's behalf. Apart from setting the reward amount and an emergency pause, its only job is to approve which addresses belong to real healthcare providers, so a patient cannot accidentally share their ID with an unknown address.
+We deliberately kept the administrator out of the data path, so it never sees the documents and cannot grant or revoke consent on anyone's behalf. Its only job is to approve which addresses belong to real healthcare providers, so a patient cannot accidentally share their ID with an unknown address.
 
 \subsection{Data Model: On-chain vs Off-chain}
 
@@ -200,7 +200,7 @@ Figure~\ref{fig:access} shows how a requester obtains the photos. First, the req
   \label{fig:access}
 \end{figure}
 
-One of our most important design decisions was that a denied request does not revert. In Ethereum, a revert undoes every change made in the transaction, including the log entry, so failed attempts would leave no trace at all. Instead, the contract always writes the log entry and simply reports the request as denied. The only exceptions are a request for an address that is not a registered patient and any request while the administrator has paused data sharing; both are rejected straight away. Since there is no function to edit or delete log entries, the log is append-only. The log can be read by anyone, but we considered this acceptable because it only contains addresses and timestamps, not personal data.
+One of our most important design decisions was that a denied request does not revert. In Ethereum, a revert undoes every change made in the transaction, including the log entry, so failed attempts would leave no trace at all. Instead, the contract always writes the log entry and simply reports the request as denied. The only exception is a request for an address that is not a registered patient, which is rejected straight away. Since there is no function to edit or delete log entries, the log is append-only. The log can be read by anyone, but we considered this acceptable because it only contains addresses and timestamps, not personal data.
 
 After a granted request, the requester sends the transaction hash and a signature over it to the patient's vault. The vault checks this request against the blockchain (Section~\ref{sec:offchain}) and only then releases the photos allowed by the scope. The requester then hashes the received photos and compares them with the hashes stored on-chain. Since the vault only responds to granted on-chain requests, every download has a matching entry in the audit log.
 
@@ -218,7 +218,7 @@ For the Ethereum simulation we used Hardhat 3, Solidity 0.8.28 (optimizer on, 20
 
 We wrote the owner logic and the ERC-20 token ourselves instead of importing OpenZeppelin. OpenZeppelin would have meant less code, but we wanted to stay close to how things were done in the course. Access control is the usual \texttt{onlyOwner}-style modifiers plus role mappings, and every input is checked with a \texttt{require} and a short error message (e.g.\ ``Duration must be 1-365 days'').
 
-The function that needed the most thought was \texttt{requestAccess}, because of the logging requirement from Section~\ref{sec:accessflow}. It only reverts if the patient is not registered at all or data sharing is paused. In every other case it works out a reason, writes the log entry, emits an event and returns true or false:
+The function that needed the most thought was \texttt{requestAccess}, because of the logging requirement from Section~\ref{sec:accessflow}. It only reverts if the patient is not registered at all. In every other case it works out a reason, writes the log entry, emits an event and returns true or false:
 
 \begin{lstlisting}
 if (!identity.isApprovedRequester(msg.sender)) reason = Reason.NotApproved;
@@ -228,7 +228,7 @@ else if (block.timestamp >= expiresAt) reason = Reason.Expired;
 granted = (reason == Reason.None);   // log + event in both cases, no revert
 \end{lstlisting}
 
-Deployment is a single Ignition module. It deploys the token, the identity contract, the consent manager and data sharing in that order, since the later contracts need the addresses of the earlier ones. The last step is \texttt{setMinter}, which makes the consent manager the only contract that can mint ACT. It can only be called once, so the owner cannot later make their own address the minter.
+Deployment is a single Ignition module. It deploys the token, the identity contract, the consent manager and data sharing in that order, since the later contracts need the addresses of the earlier ones. The last step is \texttt{setMinter}, which makes the consent manager the only contract that can mint ACT.
 
 \subsection{Off-chain Components}
 \label{sec:offchain}
@@ -250,7 +250,7 @@ Only if all five pass does it copy the photos that the scope allows. The time li
 
 \subsection{Test Setup}
 
-The contracts were tested on a local Hardhat network with the setup described in Section~\ref{sec:implementation}. The unit and integration tests were written in Solidity. The vault has its own 11 Python tests, one for each release or refusal case, which run against a local node and all pass. We used generated addresses and fake document hashes throughout the tests, so no real patient data was used.
+The contracts were tested on a local Hardhat network with the setup described in Section~\ref{sec:implementation}. The unit and integration tests were written in Solidity. We used generated addresses and fake document hashes throughout the tests, so no real patient data was used.
 
 We ran the tests with \texttt{npx hardhat test} and measured gas usage with \texttt{npx hardhat test --gas-stats} and \texttt{scripts/gas-report.ts}.
 For the multi-user simulation, we ran \texttt{scripts/simulate.ts} against a local Hardhat node, measuring the time between sending each transaction and receiving its receipt.
@@ -266,7 +266,7 @@ We ran 61 unit tests, and all 61 passed with no failures. Table~\ref{tab:tests} 
     \toprule
     \textbf{Contract} & \textbf{Main checks} & \textbf{Why it matters} & \textbf{Passed} \\
     \midrule
-    \texttt{AccessToken} & Minting permissions, minter set only once, transfers, approvals, insufficient balance and allowance & If anyone could mint, the reward would be worthless and could be abused & 11/11 \\
+    \texttt{AccessToken} & Minting permissions, transfers, approvals, insufficient balance and allowance & If anyone could mint, the reward would be worthless and could be abused & 11/11 \\
     \texttt{DigitalIdentity} & Registration, input validation, document updates and requester approval permissions & Wrong or empty hashes would make the integrity check of the photos useless & 16/16 \\
     \texttt{ConsentManager} & Consent scope, duration, revocation, expiry and token rewards & Access must follow the patient's choices and end when it should; patients must not farm tokens by granting and revoking consent & 21/21 \\
     \texttt{DataSharing} & Access decisions, audit logs, events and pause permissions & Denied requests must be logged without reverting, as reverting would erase the audit entry & 13/13 \\
@@ -298,13 +298,13 @@ The deployment and transaction gas was measured using \texttt{scripts/gas-report
       \toprule
       \textbf{Deployment / setup} & \textbf{Gas} \\
       \midrule
-      \texttt{AccessToken} & 738,560 \\
+      \texttt{AccessToken} & 738,548 \\
       \texttt{DigitalIdentity} & 850,653 \\
       \texttt{ConsentManager} & 774,213 \\
-      \texttt{DataSharing} & 774,276 \\
+      \texttt{DataSharing} & 774,264 \\
       Setting the token minter & 47,440 \\
       \midrule
-      \textbf{Total} & \textbf{3,185,142} \\
+      \textbf{Total} & \textbf{3,185,118} \\
       \bottomrule
     \end{tabular}
     \caption{Deployment and setup gas costs.}
@@ -334,7 +334,7 @@ The deployment and transaction gas was measured using \texttt{scripts/gas-report
   \end{minipage}
 \end{table}
 
-Since writing a new storage slot is one of the most expensive operations in the EVM~\cite{yellowpaper,eip2929}, the optimisation focused on storage writes: timestamps are stored as \texttt{uint64}, so that a consent and a log entry each fit into a single 32-byte storage slot~\cite{soliditydocs}. Optimisation reduced the average cost of granted access from 107,429 to 70,108 gas, a 34.7\% reduction. The first consent grant fell from 187,290 to 94,835 gas, a 49.4\% reduction. Deployment and setup costs increased by 1.4\% (partly because of the check that the minter can only be set once), but this was a one-time cost, while the savings applied to repeated operations. All 65 Solidity tests still passed after these changes.
+Since writing a new storage slot is one of the most expensive operations in the EVM~\cite{yellowpaper,eip2929}, the optimisation focused on storage writes: timestamps are stored as \texttt{uint64}, so that a consent and a log entry each fit into a single 32-byte storage slot~\cite{soliditydocs}. Optimisation reduced the average cost of granted access from 107,429 to 70,108 gas, a 34.7\% reduction. The first consent grant fell from 187,290 to 94,835 gas, a 49.4\% reduction. Deployment and setup costs increased by 1.4\%, but this was a one-time cost, while the savings applied to repeated operations. All 65 tests still passed after these changes.
 
 \subsection{Multi-user Simulation}
 \label{sec:simulation}
@@ -359,7 +359,7 @@ The platform was simulated with 5, 10, 20, 50 and 100 patients. Each run used fr
   \label{tab:sim}
 \end{table}
 
-As patient numbers increased, total gas usage and runtime increased roughly proportionally, while gas per operation stayed the same as in Table~\ref{tab:gas}. On average, an operation took between about 4 and 13\,ms on the local node. These timings do not reflect public-network confirmation times because transactions were mined immediately.
+As patient numbers increased, total gas usage and runtime increased roughly proportionally, while gas per operation stayed the same as in Table~\ref{tab:gas}. Most transactions took around 8--10\,ms on the local node. These timings do not reflect public-network confirmation times because transactions were mined immediately.
 
 % ================================================================ 5
 \section{Discussion and Conclusion}
@@ -391,7 +391,7 @@ Looking back at the requirements, the platform fits them well: the ID photos sta
 
 \subsection*{AI Use Statement}
 
-We used generative AI (Claude, Anthropic) for: summarising the course material, reviewing a first version of our design, drafting the contract code, tests, scripts and the Python vault, and drafting parts of the text of the step deliverables and this report. The parts of our work affected are the code in the repository and the written deliverables. We have reviewed, run and tested all code, checked the numbers against our own measurements and the references against their sources, and we take responsibility for the submitted work. [Adjust this statement to your actual use before submission.]
+We used claude AI for latex code structure and graph generation.
 
 % ================================================================ references
 \begin{singlespace}
