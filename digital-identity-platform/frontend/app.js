@@ -8,8 +8,6 @@ import { contracts } from "./contracts.js";
 
 const RPC = "http://127.0.0.1:8545";
 
-// Default hardhat node accounts. The keys are public test keys and only
-// work on the local chain. The labels are just to make the demo easier.
 const ACCOUNTS = [
   ["Admin", "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"],
   ["Patient 1", "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"],
@@ -54,7 +52,6 @@ function events(name, eventName, args) {
   return publicClient.getContractEvents({ ...contracts[name], eventName, args, fromBlock: 0n });
 }
 
-// sends a transaction from the selected account and waits for it
 async function write(name, functionName, args) {
   setStatus(`Sending ${functionName}...`);
   try {
@@ -63,7 +60,6 @@ async function write(name, functionName, args) {
     setStatus(`${functionName} confirmed in block ${receipt.blockNumber} (gas used ${receipt.gasUsed})`);
     return receipt;
   } catch (err) {
-    // show the require() message, like "Duration must be 1-365 days"
     setStatus(err.shortMessage ?? err.message, true);
     return null;
   }
@@ -144,7 +140,6 @@ async function refreshPatient() {
 
   fillSelect($("grantRequester"), await approvedRequesters());
 
-  // consents = every requester this patient ever granted, with the current state
   const granted = await events("ConsentManager", "ConsentGranted", { patient: me });
   const requesters = [...new Set(granted.map((e) => e.args.requester))];
   const now = (await publicClient.getBlock()).timestamp;
@@ -170,7 +165,6 @@ async function register() {
     return;
   }
 
-  // without the salt the email could be guessed from its hash; the patient has to keep the salt
   const salt = toHex(crypto.getRandomValues(new Uint8Array(32)));
   const emailHash = keccak256(encodePacked(["bytes32", "string"], [salt, email]));
   const frontHash = await sha256File(front);
@@ -183,7 +177,6 @@ async function register() {
   }
 }
 
-// new photos after the ID was renewed, hashed in the browser like at registration
 async function updateDocument() {
   const ref = $("updRef").value.trim();
   const front = $("updFront").files[0];
@@ -320,7 +313,6 @@ $("pauseBtn").addEventListener("click", async () => { if (await write("DataShari
 $("unpauseBtn").addEventListener("click", async () => { if (await write("DataSharing", "unpause", [])) refresh(); });
 $("auditPatient").addEventListener("change", refreshAudit);
 
-// one listener for the Revoke and Remove buttons, because the table rows are rebuilt on every refresh
 document.addEventListener("click", async (e) => {
   if (e.target.dataset.revoke) revoke(e.target.dataset.revoke);
   if (e.target.dataset.remove) {
@@ -328,7 +320,6 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// ?account=1#requester opens that account and tab, useful for screenshots
 const params = new URLSearchParams(location.search);
 const startAccount = Number(params.get("account") ?? 0);
 $("accountSelect").value = startAccount;

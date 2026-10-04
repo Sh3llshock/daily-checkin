@@ -39,8 +39,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* header and tabs */
-
 header {
   display: flex;
   justify-content: space-between;
@@ -116,8 +114,6 @@ nav button.active {
   border-bottom-color: var(--accent);
 }
 
-/* layout: actions on the left, records on the right */
-
 main {
   display: flex;
   flex-direction: column;
@@ -176,8 +172,6 @@ main {
   color: var(--ink-2);
   font-size: 13.5px;
 }
-
-/* forms */
 
 label {
   display: block;
@@ -272,7 +266,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* secondary actions: revoke, remove, pause, unpause */
 button.small,
 #pauseBtn,
 #unpauseBtn {
@@ -303,8 +296,6 @@ button.small {
   background: var(--denied-tint);
   border-color: var(--denied);
 }
-
-/* tables */
 
 table {
   width: 100%;
@@ -342,7 +333,6 @@ td.hint {
   padding: 10px 0;
 }
 
-/* hashes and references are data, so they get the monospace face */
 #identityTable td:nth-child(2) {
   font-family: var(--mono);
   font-size: 12.5px;
@@ -353,8 +343,6 @@ td.hint {
   color: var(--ink-2);
   white-space: nowrap;
 }
-
-/* status line, results, salt */
 
 .status {
   margin: 0;
@@ -437,7 +425,6 @@ td.hint {
     padding: 18px;
   }
 
-  /* record tables scroll sideways instead of breaking words; hashes still wrap */
   #consentTable,
   #myRequestsTable,
   #requesterTable,
